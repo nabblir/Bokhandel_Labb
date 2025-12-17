@@ -1,0 +1,82 @@
+﻿<Window x:Class="Bokhandel_Labb.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Bokhandel_Labb"
+        xmlns:vm="clr-namespace:Bokhandel_Labb.ViewModels"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        Title="Bokeditor Millenium 9000 - sponsrad av Staten" 
+        Height="450" 
+        Width="800">
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <!-- Header -->
+            <RowDefinition Height="*"/>
+            <!-- Content -->
+            <RowDefinition Height="30"/>
+            <!-- Status bar -->
+        </Grid.RowDefinitions>
+
+        <!-- Header med bakgrund -->
+        <Border Grid.Row="0" Background="#2196F3">
+            <TextBlock Text="Bokeditor Millenium 9000 (100% Failsafe edition)" 
+                   FontSize="22" 
+                   FontWeight="Bold" 
+                   Foreground="White"
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center" FontFamily="Comic Sans MS"/>
+        </Border>
+
+        <!-- Menu grid -->
+        <Grid Grid.Row="1" Margin="50">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <!-- DONE -->
+            <Button Grid.Row="0" Grid.Column="0"
+                Content="📚 Flytta bok mellan butiker" 
+                Command="{Binding ÖppnaBokbyteCommand}"
+                Margin="10"
+                FontSize="18" BorderBrush="Black"/>
+            <!-- TODO -->
+            <Button Grid.Row="0" Grid.Column="1"
+                Content="📦 Hantera butikslager"
+                Margin="10"
+                FontSize="18"
+                IsEnabled="False" BorderBrush="Black"/>
+            <!-- TODO -->
+            <Button Grid.Row="1" Grid.Column="0"
+                Content="✏️ Redigera bok"
+                Margin="10"
+                FontSize="18"
+                IsEnabled="False" BorderBrush="Black"/>
+            <!-- TODO -->
+            <Button Grid.Row="1" Grid.Column="1"
+                Content="📊 Logghistorik"
+                Margin="10"
+                FontSize="18"
+                IsEnabled="False" BorderBrush="Black"/>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#F5F5F5" BorderBrush="#CCCCCC" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding AnslutningsStatus, StringFormat='Status: {0}'}" 
+                   FontSize="11" 
+                   VerticalAlignment="Center"
+                   Foreground="{Binding AnslutningsFärg}"
+                   Margin="10,0"/>
+        </Border>
+    </Grid>
+</Window>

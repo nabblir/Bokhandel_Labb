@@ -1,0 +1,76 @@
+﻿<Window x:Class="Bokhandel_Labb.Views.AntalInputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ange antal" 
+        Height="250" 
+        Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" 
+                   Text="{Binding BokTitel, StringFormat='Bok: {0}'}" 
+                   FontWeight="Bold" 
+                   FontSize="14"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="1" 
+                   Text="{Binding MaxAntal, StringFormat='Tillgängligt antal: {0}'}"
+                   FontSize="12"
+                   Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="2" FontSize="12" Margin="0,0,0,15">
+            <TextBlock.Text>
+                <MultiBinding StringFormat="Från: {0} -> Till: {1}">
+                    <Binding Path="FrånButikNamn"/>
+                    <Binding Path="TillButikNamn"/>
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+
+        <StackPanel Grid.Row="3" 
+                    Orientation="Horizontal" 
+                    Margin="0,0,0,20">
+            <TextBlock Text="Antal att flytta:" 
+                       VerticalAlignment="Center" 
+                       FontSize="12"
+                       Margin="0,0,10,0"/>
+            <TextBox Text="{Binding AntalText, UpdateSourceTrigger=PropertyChanged}" 
+                     Width="100" 
+                     Height="30"
+                     VerticalContentAlignment="Center"
+                     FontSize="14"
+                     Padding="5"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="5" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Avbryt" 
+                    Command="{Binding CancelCommand}"
+                    Width="80" 
+                    Height="35"
+                    Margin="0,0,10,0"
+                    IsCancel="True"
+                    Background="#FFF59696"
+                    FontWeight="SemiBold" BorderBrush="Black"/>
+            <Button Content="OK" 
+                    Command="{Binding OKCommand}"
+                    Width="80" 
+                    Height="35"
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    Background="#FF96F596"
+                    FontWeight="SemiBold" BorderBrush="Black"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -8,7 +8,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-
+///TODO: Remove unused usings
+///TODO: Förhindra att drag av bok från samma butik till samma butik sker
 namespace Bokhandel_Labb.ViewModels
     {
     public class BokbyteViewModel : BaseViewModel

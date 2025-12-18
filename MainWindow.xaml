@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Bokhandel_Labb"
         mc:Ignorable="d"
+        FontFamily="Bahnschrift SemiLight"
         WindowStartupLocation="CenterScreen"
         Title="Bokeditor Millenium 9000 - sponsrad av Staten" 
         Height="450" 
@@ -42,19 +43,19 @@
             </Grid.RowDefinitions>
             <!-- DONE -->
             <Button Grid.Row="0" Grid.Column="0"
-                Content="📚 Flytta bok mellan butiker" 
+                Content="📚 Redigera lager" 
                 Command="{Binding ÖppnaBokbyteCommand}"
                 Margin="10"
                 FontSize="18" BorderBrush="Black"/>
             <!-- TODO -->
             <Button Grid.Row="0" Grid.Column="1"
-                Content="📦 Hantera butikslager"
+                Content="📦 Hantera ordrar"
                 Margin="10"
                 FontSize="18"
                 IsEnabled="False" BorderBrush="Black"/>
             <!-- TODO -->
             <Button Grid.Row="1" Grid.Column="0"
-                Content="✏️ Redigera bok"
+                Content="✏️ Lägg till bok"
                 Margin="10"
                 Command="{Binding ÖppnaRedigeraBokCommand}"
                 FontSize="18" BorderBrush="Black"/>

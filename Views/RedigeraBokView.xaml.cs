@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bokhandel_Labb.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +17,14 @@ using System.Windows.Shapes;
 namespace Bokhandel_Labb.Views
 {
     /// <summary>
-    /// Interaction logic for HanteraBockerView.xaml
+    /// Interaction logic for RedigeraBokView.xaml
     /// </summary>
-    public partial class HanteraBockerView : UserControl
+    public partial class RedigeraBokView : Window
     {
-        public HanteraBockerView()
+        public RedigeraBokView(RedigeraBokViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
     }
 }

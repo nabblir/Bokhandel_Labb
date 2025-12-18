@@ -283,6 +283,7 @@ namespace Bokhandel_Labb.ViewModels
         private void Avbryt()
             {
             Application.Current.Windows.OfType<Views.BokbyteView>().FirstOrDefault()?.Close();
+            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()?.Focus(); // Fokus tillbaka till huvudfönstret, annars minimeras det.. enkel fix
             }
         }
 

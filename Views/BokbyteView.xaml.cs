@@ -21,10 +21,10 @@ namespace Bokhandel_Labb.Views
     /// </summary>
     public partial class BokbyteView : Window
         {
-        public BokbyteView()
+        public BokbyteView(BokbyteViewModel viewModel)
             {
             InitializeComponent();
-            DataContext = new BokbyteViewModel();
+            DataContext = viewModel;
             }
         }
     }

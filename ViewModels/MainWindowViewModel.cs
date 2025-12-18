@@ -15,6 +15,8 @@ namespace Bokhandel_Labb.ViewModels
     public class MainWindowViewModel : BaseViewModel
         {
         public ICommand ÖppnaBokbyteCommand { get; }
+        public ICommand ÖppnaRedigeraBokCommand { get; }
+
         private string _anslutningsStatus;
         public string AnslutningsStatus
             {
@@ -22,18 +24,30 @@ namespace Bokhandel_Labb.ViewModels
             set => SetProperty(ref _anslutningsStatus, value);
             }
         public System.Windows.Media.Brush AnslutningsFärg { get; private set; }
+
         public MainWindowViewModel()
             {
             ÖppnaBokbyteCommand = new RelayCommand(ÖppnaBokbyte);
+            ÖppnaRedigeraBokCommand = new RelayCommand(ÖppnaRedigeraBok);
             TestaAnslutning();
             }
 
         private void ÖppnaBokbyte()
             {
-            var bokbyteWindow = new BokbyteView();
+            var viewModel = new BokbyteViewModel();
+            var bokbyteWindow = new BokbyteView(viewModel);
             bokbyteWindow.Owner = Application.Current.MainWindow;
             bokbyteWindow.Show();
             }
+
+        private void ÖppnaRedigeraBok()
+            {
+            var viewModel = new RedigeraBokViewModel();
+            var redigeraBokWindow = new RedigeraBokView(viewModel);
+            redigeraBokWindow.Owner = Application.Current.MainWindow;
+            redigeraBokWindow.Show();
+            }
+
         private void TestaAnslutning()
             {
             using (var context = new BokhandelContext())

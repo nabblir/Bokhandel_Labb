@@ -211,6 +211,7 @@ public partial class BokhandelContext : DbContext
                 .HasForeignKey(d => d.Isbn)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_LagerSaldo_Böcker");
+            
         });
 
         modelBuilder.Entity<LagersaldoPerButik>(entity =>

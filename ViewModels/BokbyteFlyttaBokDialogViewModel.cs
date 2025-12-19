@@ -4,7 +4,7 @@ using System.Windows.Input;
 
 namespace Bokhandel_Labb.ViewModels
     {
-    public class AntalInputDialogViewModel : BaseViewModel
+    public class BokbyteFlyttaBokDialogViewModel : BaseViewModel
         {
         private string _bokTitel;
         public string BokTitel
@@ -48,7 +48,7 @@ namespace Bokhandel_Labb.ViewModels
 
         private Window _window;
 
-        public AntalInputDialogViewModel(string bokTitel, int maxAntal, string tillButikNamn, string frånButikNamn, Window window)
+        public BokbyteFlyttaBokDialogViewModel(string bokTitel, int maxAntal, string tillButikNamn, string frånButikNamn, Window window)
             {
             BokTitel = bokTitel;
             MaxAntal = maxAntal;

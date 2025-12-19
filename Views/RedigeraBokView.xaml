@@ -7,122 +7,375 @@
         mc:Ignorable="d"
         FontFamily="Bahnschrift SemiLight"
         Title="Lägg till bok"
-        Height="600" 
-        Width="700"
+        SizeToContent="Height"
+        MinHeight="700"
+        MaxHeight="1050"
+        Width="600"
         WindowStartupLocation="CenterOwner"
-        Background="DarkSlateGray"
+        Background="#FF2F4F4F"
         ResizeMode="NoResize">
-    <Grid Margin="30">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <!-- Boktitel -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="Boktitel:" 
-                       FontSize="12"
-                       Margin="0,0,0,5" Foreground="White"/>
-            <TextBox Text="{Binding BokTitel, UpdateSourceTrigger=PropertyChanged}" 
-                     Height="30"
-                     VerticalContentAlignment="Center"
-                     FontSize="14"
-                     Padding="5"/>
-        </StackPanel>
-        <!-- ISBN -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,15">
-            <TextBlock Text="ISBN:"
-                       FontSize="12"
-                       Margin="0,0,0,5" Foreground="White"/>
-            <TextBox Text="{Binding ISBN, UpdateSourceTrigger=PropertyChanged}" 
-                     Height="30"
-                     VerticalContentAlignment="Center"
-                     FontSize="14"
-                     Padding="5"/>
-        </StackPanel>
-        <!-- Författare -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,15">
-            <TextBlock Text="Författare:"
-                       FontSize="12"
-                       Margin="0,0,0,5" Foreground="White"/>
-            <TextBox Text="{Binding Forfattare, UpdateSourceTrigger=PropertyChanged}" 
-                     Height="30"
-                     VerticalContentAlignment="Center"
-                     FontSize="14"
-                     Padding="5"/>
-        </StackPanel>
-        <!-- Språk -->
-        <StackPanel Grid.Row="3" Margin="0,0,0,15">
-            <TextBlock Text="Språk:"
-                       FontSize="12"
-                       Margin="0,0,0,5" Foreground="White"/>
-            <TextBox Text="{Binding Språk, UpdateSourceTrigger=PropertyChanged}" 
-                     Height="30"
-                     VerticalContentAlignment="Center"
-                     FontSize="14"
-                     Padding="5"/>
-        </StackPanel>
-        <!-- Antal -->
-        <StackPanel Grid.Row="4" Margin="0,0,0,15">
-            <TextBlock Text="Antal:"
-                       FontSize="12"
-                       Margin="0,0,0,5" Foreground="White"/>
-            <TextBox Text="{Binding BokAntal, UpdateSourceTrigger=PropertyChanged}" 
-                     Height="30"
-                     VerticalContentAlignment="Center"
-                     FontSize="14"
-                     Padding="5"/>
-        </StackPanel>
-        <!-- Butik -->
-        <StackPanel Grid.Row="5" Margin="0,0,0,15">
-            <TextBlock Text="Välj Butik:" 
-                       FontSize="12"
-                       Margin="0,0,0,5" Foreground="White" />
-            <ComboBox ItemsSource="{Binding Butik}"
-                      SelectedItem="{Binding ValdButik}"
-                      DisplayMemberPath="ButiksNamn"
-                      Height="30"
-                      Padding="5"
-                      FontSize="14"/>
-        </StackPanel>
-        <!-- Status meddelande -->
-        <TextBlock Grid.Row="7"
-                   Text="{Binding StatusMeddelande}"
-                   FontSize="12"
-                   Foreground="{Binding StatusTextFärg}"
-                   FontWeight="SemiBold"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
-                   Margin="0,5,0,5" FontFamily="Bahnschrift SemiLight"/>
-        <!-- Footer -->
-        <StackPanel Grid.Row="8" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Right"
-                    Margin="0,10,0,0">
-            <Button Content="Avbryt" 
-                    Command="{Binding CancelCommand}"
-                    Width="80" 
-                    Height="35"
-                    Margin="0,0,10,0"
-                    IsCancel="True"
-                    Background="#FFF59696"
-                    FontWeight="SemiBold" 
-                    BorderBrush="Black" FontFamily="Bahnschrift SemiLight"/>
-            <Button Content="Lägg Till" 
-                    Command="{Binding OKCommand}"
-                    Width="80" 
-                    Height="35"
-                    IsDefault="True"
-                    Background="#FF96F596"
-                    FontWeight="SemiBold" 
-                    BorderBrush="Black" 
-                    IsEnabled="{Binding EnableLäggTillBok}" FontFamily="Bahnschrift SemiLight"/>
-        </StackPanel>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <!-- Button Style med IsPressed feedback -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="5" 
+                                                ShadowDepth="2" 
+                                                Opacity="0.3"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="ButtonBorder" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextBox Style -->
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="BorderBrush" Value="#5A7A7A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- ComboBox Style -->
+        <Style x:Key="ModernComboBox" TargetType="ComboBox">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#5A7A7A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Label Style -->
+        <Style x:Key="ModernLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Header Band -->
+        <Border Background="#FF1A3333" 
+                Height="70" 
+                VerticalAlignment="Top"
+                Panel.ZIndex="1">
+            <Grid Margin="20,0">
+                <TextBlock Text="➕ Lägg till bok" 
+                           FontSize="24" 
+                           FontWeight="Bold"
+                           Foreground="White"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Margin="0,80,0,0" 
+                      VerticalScrollBarVisibility="Auto">
+            <Grid Margin="30,10,30,30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Boktitel + Antal Sidor -->
+                <Border Grid.Row="0" 
+                        Background="#FF3A5A5A"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="📖 Boktitel:" Style="{StaticResource ModernLabel}"/>
+                            <TextBox Text="{Binding BokTitel, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="📄 Antal sidor:" Style="{StaticResource ModernLabel}"/>
+                            <TextBox Text="{Binding AntalSidor, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ISBN + Pris -->
+                <Border Grid.Row="1" 
+                        Background="#FF3A5A5A"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="🔢 ISBN:" Style="{StaticResource ModernLabel}"/>
+                            <TextBox Text="{Binding ISBN, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="💰 Pris (kr):" Style="{StaticResource ModernLabel}"/>
+                            <TextBox Text="{Binding Pris, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Författare + Utgivningsdatum -->
+                <Border Grid.Row="2" 
+                        Background="#FF3A5A5A"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="170"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="✍️ Författare:" Style="{StaticResource ModernLabel}"/>
+                            <ComboBox ItemsSource="{Binding FörfattareLista}"
+                                      SelectedItem="{Binding ValdFörfattare}"
+                                      DisplayMemberPath="Namn"
+                                      Style="{StaticResource ModernComboBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="📅 Utgivningsdatum:" Style="{StaticResource ModernLabel}"/>
+                            <DatePicker SelectedDate="{Binding Utgivningsdatum, UpdateSourceTrigger=PropertyChanged}" 
+                                        Height="35"
+                                        FontSize="13"
+                                        Padding="10,5"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Ny Författare (Conditional) -->
+                <Border Grid.Row="3" 
+                        Background="#4DFFEB3B"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15"
+                        Visibility="{Binding VisaNyFörfattareFält, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="➕ Ny författare (Förnamn Efternamn):" 
+                                   Style="{StaticResource ModernLabel}"/>
+                        <TextBox Text="{Binding NyFörfattareNamn, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Förlag -->
+                <Border Grid.Row="4" 
+                        Background="#FF3A5A5A"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="🏢 Förlag (valfritt):" Style="{StaticResource ModernLabel}"/>
+                        <ComboBox ItemsSource="{Binding FörlagLista}"
+                                  SelectedItem="{Binding ValtFörlag}"
+                                  DisplayMemberPath="Namn"
+                                  Style="{StaticResource ModernComboBox}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Nytt Förlag (Conditional) -->
+                <Border Grid.Row="5" 
+                        Background="#4DFFEB3B"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15"
+                        Visibility="{Binding VisaNyFörlagFält, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="➕ Nytt förlag:" Style="{StaticResource ModernLabel}"/>
+                        <TextBox Text="{Binding NyttFörlagNamn, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Språk -->
+                <Border Grid.Row="6" 
+                        Background="#FF3A5A5A"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="🌍 Språk:" Style="{StaticResource ModernLabel}"/>
+                        <TextBox Text="{Binding Språk, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Antal + Butik -->
+                <Border Grid.Row="7" 
+                        Background="#FF3A5A5A"
+                        CornerRadius="6"
+                        Padding="15"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.3"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="📦 Antal i lager:" Style="{StaticResource ModernLabel}"/>
+                            <TextBox Text="{Binding BokAntal, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource ModernTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="🏪 Butik:" Style="{StaticResource ModernLabel}"/>
+                            <ComboBox ItemsSource="{Binding Butik}"
+                                      SelectedItem="{Binding ValdButik}"
+                                      DisplayMemberPath="ButiksNamn"
+                                      Style="{StaticResource ModernComboBox}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Status meddelande -->
+                <Border Grid.Row="8"
+                        Background="White"
+                        BorderBrush="#DDDDDD"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12"
+                        MinHeight="45"
+                        Margin="0,0,0,15">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="4" ShadowDepth="2" Opacity="0.2"/>
+                    </Border.Effect>
+                    <TextBlock Text="{Binding StatusMeddelande}"
+                               FontSize="12"
+                               Foreground="{Binding StatusTextFärg}"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Footer Buttons -->
+                <Grid Grid.Row="9">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <!-- Avbryt Button -->
+                        <Button Content="✖ Avbryt" 
+                                Command="{Binding CancelCommand}"
+                                Width="100" 
+                                Height="40"
+                                Margin="0,0,10,0"
+                                IsCancel="True"
+                                Background="#FFE57373"
+                                Foreground="White"
+                                BorderBrush="#D32F2F"
+                                BorderThickness="2"
+                                Style="{StaticResource ModernButton}"/>
+
+                        <!-- Lägg Till Button med grön/grå states -->
+                        <Button Content="➕ Lägg Till" 
+                                Command="{Binding OKCommand}"
+                                Width="100" 
+                                Height="40"
+                                IsDefault="True"
+                                IsEnabled="{Binding EnableLäggTillBok}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ModernButton}">
+                                    <Setter Property="Background" Value="#FF81C784"/>
+                                    <Setter Property="BorderBrush" Value="#388E3C"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Background" Value="#FFBDBDBD"/>
+                                            <Setter Property="BorderBrush" Value="#757575"/>
+                                            <Setter Property="Foreground" Value="#616161"/>
+                                            <Setter Property="Cursor" Value="No"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Window>

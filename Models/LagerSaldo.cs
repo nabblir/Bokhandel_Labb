@@ -14,4 +14,4 @@ public partial class LagerSaldo
     public virtual Butiker Butik { get; set; } = null!;
 
     public virtual Böcker IsbnNavigation { get; set; } = null!;
-}
+    }

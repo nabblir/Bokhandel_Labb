@@ -1,15 +1,17 @@
 ﻿using Bokhandel_Labb.Commands;
+using Bokhandel_Labb.DTOs;
 using Bokhandel_Labb.Helpers;
 using Bokhandel_Labb.Models;
+using Bokhandel_Labb.Views;
 using GongSolutions.Wpf.DragDrop;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-///TODO: Remove unused usings
-///TODO: Förhindra att drag av bok från samma butik till samma butik sker
+
 namespace Bokhandel_Labb.ViewModels
     {
     public class BokbyteViewModel : BaseViewModel
@@ -21,7 +23,25 @@ namespace Bokhandel_Labb.ViewModels
         public ObservableCollection<ButikDTO> AllaButiker { get; set; }
         public ObservableCollection<LagerSaldoDTO> Butik1Böcker { get; set; }
         public ObservableCollection<LagerSaldoDTO> Butik2Böcker { get; set; }
+        
 
+        private LagerSaldoDTO _valdBok;
+        public LagerSaldoDTO ValdBok
+            {
+            get => _valdBok;
+            set
+                {
+                if (SetProperty(ref _valdBok, value))
+                    {
+                    if (value != null)
+                        {
+                        VisaInfo($"Bok: {value.Titel} från butik: {value.ButiksNamn} vald.");
+                        }
+                    }
+                }
+            }
+        
+        // Butiker
         private ObservableCollection<ButikDTO> _tillgängligaButiker1;
         public ObservableCollection<ButikDTO> TillgängligaButiker1
             {
@@ -64,10 +84,42 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
+        // Statusmeddelande
+        private string _statusMeddelande = "Läs hjälpavsnitt(F1) för användning av systemet.";
+        public string StatusMeddelande
+            {
+            get => _statusMeddelande;
+            set => SetProperty(ref _statusMeddelande, value);
+            }
+
+        private System.Windows.Media.Brush _statusTextFärg = System.Windows.Media.Brushes.Black;
+        public System.Windows.Media.Brush StatusTextFärg
+            {
+            get => _statusTextFärg;
+            set => SetProperty(ref _statusTextFärg, value);
+            }
+
+        // Sök
+
+        private string _sökText;
+        public string SökText
+            {
+            get => _sökText;
+            set
+                {
+                if (SetProperty(ref _sökText, value))
+                    {
+                    LaddaButik1Böcker(_sökText);
+                    LaddaButik2Böcker(_sökText);
+                    }
+                }
+            }
         // Commands
         public ICommand SparaÄndringarCommand { get; }
         public ICommand ÅterställCommand { get; }
         public ICommand CancelCommand { get; }
+        public ICommand ÄndraLagersaldoCommand { get; }
+        public ICommand HjälpCommand { get; }
         public IDropTarget DropHandler { get; }
 
         public BokbyteViewModel()
@@ -90,11 +142,69 @@ namespace Bokhandel_Labb.ViewModels
             SparaÄndringarCommand = new RelayCommand(SparaÄndringar);
             ÅterställCommand = new RelayCommand(Återställ);
             CancelCommand = new RelayCommand(Avbryt);
+            ÄndraLagersaldoCommand = new RelayCommand(ÄndraLagersaldo);
+            HjälpCommand = new RelayCommand(VisaHjälp);
 
             // Ladda data
             LaddaAllaButiker();
             }
+        private void ÄndraLagersaldo()
+            {
+            if (ValdBok == null)
+                {
+                VisaVarning("Välj en bok först för att ändra lagersaldo");
+                return;
+                }
 
+            var bokTitel = ValdBok.Titel;
+            var antalILager = ValdBok.AntalILager;
+
+            var tillhörButik1 = Butik1Böcker.Contains(ValdBok);
+            var sourceCollection = tillhörButik1 ? Butik1Böcker : Butik2Böcker;
+            var sourceButik = tillhörButik1 ? ValdButik1 : ValdButik2;
+
+            var dialog = new BokbyteÄndraLagerBokDialog(
+                bokTitel,
+                antalILager);
+
+            dialog.Owner = Application.Current.Windows.OfType<Views.BokbyteView>().FirstOrDefault();
+
+            if (dialog.ShowDialog() == true)
+                {
+                if (dialog.Antal == 0)
+                    {
+                    // Ta bort från collection om antal är 0
+                    sourceCollection.Remove(ValdBok);
+                    VisaVarning($"⚠ '{bokTitel}' har satts till 0 och kommer tas bort från {sourceButik.ButiksNamn}. Klicka 'Spara Ändringar' för att verkställa.");
+                    }
+                else
+                    {
+                    ValdBok.AntalILager = dialog.Antal;
+                    VisaSucces($"✓ Lagersaldo för '{bokTitel}' uppdaterat till {dialog.Antal}");
+                    }
+                }
+            }
+
+        private void VisaHjälp()
+            {
+            MessageBox.Show(
+                "Inventering - Hjälp\n\n" +
+                "• Dra böcker mellan butiker för att flytta lagersaldo\n" +
+                "• Dra böcker till papperskorgen för att ta bort från butik\n" +
+                "• Dubbelklicka en bok eller tryck Alt + E för att ändra lagersaldo\n" +
+                "• Klicka 'Spara Ändringar' för att verkställa ändringar\n" +
+                "• Klicka 'Återställ' för att ångra osparade ändringar\n\n" +
+                "Tangentbordsgenvägar:\n" +
+                "• Alt + S - Spara ändringar\n" +
+                "• Alt + Z - Återställ\n" +
+                "• Alt + E - Ändra lagersaldo\n" +
+                "• F1 - Visa hjälp\n" +
+                "• Alt + Q - Avsluta",
+                "Hjälp",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+                );
+            }
         private void LaddaAllaButiker()
             {
             try
@@ -120,77 +230,135 @@ namespace Bokhandel_Labb.ViewModels
                 }
             catch (Exception ex)
                 {
-                MessageBox.Show($"Fel vid laddning av butiker: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                VisaFel($"Fel vid laddning av butiker: {ex.Message}");
                 }
             }
 
-        private void LaddaButik1Böcker()
+        private void LaddaButik1Böcker(string sökText = "")
             {
             if (ValdButik1 == null)
                 return;
             try
                 {
-                var lagerSaldo = _context.LagerSaldos
-                    .Where(ls => ls.ButikId == ValdButik1.ButikId)
-                    .Include(ls => ls.IsbnNavigation)
-                        .ThenInclude(b => b.Författares)
-                    .ToList();
-
-                Butik1Böcker.Clear();
-                foreach (var saldo in lagerSaldo)
+                if (string.IsNullOrWhiteSpace(sökText))
                     {
-                    var författare = string.Join(", ",
-                        saldo.IsbnNavigation.Författares.Select(f => f.Förnamn + " " + f.Efternamn));
+                    var lagerSaldo = _context.LagerSaldos
+                        .Where(ls => ls.ButikId == ValdButik1.ButikId)
+                        .Include(ls => ls.IsbnNavigation)
+                            .ThenInclude(b => b.Författares)
+                        .ToList();
 
-                    Butik1Böcker.Add(new LagerSaldoDTO
+                    Butik1Böcker.Clear();
+                    foreach (var saldo in lagerSaldo)
                         {
-                        Isbn = saldo.Isbn,
-                        Titel = saldo.IsbnNavigation.Titel,
-                        FörfattareNamn = författare,
-                        AntalILager = saldo.Antal,
-                        ButikId = ValdButik1.ButikId,
-                        });
+                        var författare = string.Join(", ",
+                            saldo.IsbnNavigation.Författares.Select(f => f.Förnamn + " " + f.Efternamn));
+
+                        Butik1Böcker.Add(new LagerSaldoDTO
+                            {
+                            Isbn = saldo.Isbn,
+                            Titel = saldo.IsbnNavigation.Titel,
+                            FörfattareNamn = författare,
+                            AntalILager = saldo.Antal,
+                            ButikId = ValdButik1.ButikId,
+                            });
+                        }
+                    }
+                else
+                    {
+                    var lagerSaldo = _context.LagerSaldos
+                        .Where(ls => ls.ButikId == ValdButik1.ButikId)
+                        .Include(ls => ls.IsbnNavigation)
+                            .ThenInclude(b => b.Författares)
+                        .ToList();
+
+                    Butik1Böcker.Clear();
+                    foreach (var saldo in lagerSaldo)
+                        {
+                        var författare = string.Join(", ",
+                            saldo.IsbnNavigation.Författares.Select(f => f.Förnamn + " " + f.Efternamn));
+                        if (saldo.IsbnNavigation.Titel.Contains(sökText, StringComparison.OrdinalIgnoreCase) ||
+                            författare.Contains(sökText, StringComparison.OrdinalIgnoreCase))
+                            {
+                            Butik1Böcker.Add(new LagerSaldoDTO
+                                {
+                                Isbn = saldo.Isbn,
+                                Titel = saldo.IsbnNavigation.Titel,
+                                FörfattareNamn = författare,
+                                AntalILager = saldo.Antal,
+                                ButikId = ValdButik1.ButikId,
+                                });
+                            }
+                        }
                     }
                 }
             catch (Exception ex)
                 {
-                MessageBox.Show($"Fel vid laddning av böcker för {ValdButik1.ButiksNamn}: {ex.Message}",
-                    "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                VisaFel($"Fel vid laddning av böcker från {ValdButik1.ButiksNamn}: {ex.Message}");
                 }
             }
 
-        private void LaddaButik2Böcker()
+        private void LaddaButik2Böcker(string sökText = "")
             {
             if (ValdButik2 == null)
                 return;
-            try
+                try
                 {
-                var lagerSaldo = _context.LagerSaldos
-                    .Where(ls => ls.ButikId == ValdButik2.ButikId)
-                    .Include(ls => ls.IsbnNavigation)
-                        .ThenInclude(b => b.Författares)
-                    .ToList();
-
-                Butik2Böcker.Clear();
-                foreach (var saldo in lagerSaldo)
+                if (string.IsNullOrWhiteSpace(sökText))
                     {
-                    var författare = string.Join(", ",
-                        saldo.IsbnNavigation.Författares.Select(f => f.Förnamn + " " + f.Efternamn));
+                    var lagerSaldo = _context.LagerSaldos
+                        .Where(ls => ls.ButikId == ValdButik2.ButikId)
+                        .Include(ls => ls.IsbnNavigation)
+                            .ThenInclude(b => b.Författares)
+                        .ToList();
 
-                    Butik2Böcker.Add(new LagerSaldoDTO
+                    Butik2Böcker.Clear();
+                    foreach (var saldo in lagerSaldo)
                         {
-                        Isbn = saldo.Isbn,
-                        Titel = saldo.IsbnNavigation.Titel,
-                        FörfattareNamn = författare,
-                        AntalILager = saldo.Antal,
-                        ButikId = ValdButik2.ButikId,
-                        });
+                        var författare = string.Join(", ",
+                            saldo.IsbnNavigation.Författares.Select(f => f.Förnamn + " " + f.Efternamn));
+
+                        Butik2Böcker.Add(new LagerSaldoDTO
+                            {
+                            Isbn = saldo.Isbn,
+                            Titel = saldo.IsbnNavigation.Titel,
+                            FörfattareNamn = författare,
+                            AntalILager = saldo.Antal,
+                            ButikId = ValdButik2.ButikId,
+                            });
+                        }
+                    }
+                else
+                    {
+                    var lagerSaldo = _context.LagerSaldos
+                        .Where(ls => ls.ButikId == ValdButik2.ButikId)
+                        .Include(ls => ls.IsbnNavigation)
+                            .ThenInclude(b => b.Författares)
+                        .ToList();
+
+                    Butik2Böcker.Clear();
+                    foreach (var saldo in lagerSaldo)
+                        {
+                        var författare = string.Join(", ",
+                            saldo.IsbnNavigation.Författares.Select(f => f.Förnamn + " " + f.Efternamn));
+                        if (saldo.IsbnNavigation.Titel.Contains(sökText, StringComparison.OrdinalIgnoreCase) ||
+                            författare.Contains(sökText, StringComparison.OrdinalIgnoreCase))
+                            {
+                            Butik2Böcker.Add(new LagerSaldoDTO
+                                {
+                                Isbn = saldo.Isbn,
+                                Titel = saldo.IsbnNavigation.Titel,
+                                FörfattareNamn = författare,
+                                AntalILager = saldo.Antal,
+                                ButikId = ValdButik2.ButikId,
+                                });
+                            }
+                        }
                     }
                 }
-            catch (Exception ex)
+            catch ( Exception ex)
                 {
-                MessageBox.Show($"Fel vid laddning av böcker för {ValdButik2.ButiksNamn}: {ex.Message}",
-                    "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                VisaFel($"Fel vid laddning av böcker från {ValdButik2.ButiksNamn}: {ex.Message}");
                 }
             }
 
@@ -198,6 +366,17 @@ namespace Bokhandel_Labb.ViewModels
             {
             try
                 {
+                // Hämta ALLA ISBN från båda butikerna i databasen
+                var allaISBNButik1 = _context.LagerSaldos
+                    .Where(ls => ls.ButikId == ValdButik1.ButikId)
+                    .Select(ls => ls.Isbn)
+                    .ToList();
+
+                var allaISBNButik2 = _context.LagerSaldos
+                    .Where(ls => ls.ButikId == ValdButik2.ButikId)
+                    .Select(ls => ls.Isbn)
+                    .ToList();
+
                 // Uppdatera LagerSaldo för Butik 1
                 foreach (var bok in Butik1Böcker)
                     {
@@ -216,6 +395,21 @@ namespace Bokhandel_Labb.ViewModels
                             Isbn = bok.Isbn,
                             Antal = bok.AntalILager
                             });
+                        }
+                    }
+
+                // Ta bort böcker från Butik 1 som finns i DB men inte i collection
+                var borttagnaBöckerButik1 = allaISBNButik1
+                    .Where(isbn => !Butik1Böcker.Any(b => b.Isbn == isbn))
+                    .ToList();
+
+                foreach (var isbn in borttagnaBöckerButik1)
+                    {
+                    var saldo = _context.LagerSaldos
+                        .FirstOrDefault(ls => ls.ButikId == ValdButik1.ButikId && ls.Isbn == isbn);
+                    if (saldo != null)
+                        {
+                        _context.LagerSaldos.Remove(saldo);
                         }
                     }
 
@@ -240,9 +434,24 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-                // Tar bort LagerSaldo med 0 böcker
+                // Ta bort böcker från Butik 2 som finns i DB men inte i collection
+                var borttagnaBöckerButik2 = allaISBNButik2
+                    .Where(isbn => !Butik2Böcker.Any(b => b.Isbn == isbn))
+                    .ToList();
+
+                foreach (var isbn in borttagnaBöckerButik2)
+                    {
+                    var saldo = _context.LagerSaldos
+                        .FirstOrDefault(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == isbn);
+                    if (saldo != null)
+                        {
+                        _context.LagerSaldos.Remove(saldo);
+                        }
+                    }
+
+                // Tar bort LagerSaldo med 0 böcker (för säkerhets skull)
                 var tomtLager = _context.LagerSaldos
-                    .Where(ls => ls.Antal == 0 &&
+                    .Where(ls => ls.Antal <= 0 &&
                         ( ls.ButikId == ValdButik1.ButikId || ls.ButikId == ValdButik2.ButikId ))
                     .ToList();
 
@@ -251,11 +460,15 @@ namespace Bokhandel_Labb.ViewModels
                 // Sparar till databas
                 _context.SaveChanges();
 
-                MessageBox.Show("Ändringar sparade!", "Sparat", MessageBoxButton.OK, MessageBoxImage.Information);
+                VisaSucces("✓ Ändringar sparade!");
+
+                // Ladda om för att visa korrekt data
+                LaddaButik1Böcker();
+                LaddaButik2Böcker();
                 }
             catch (Exception ex)
                 {
-                MessageBox.Show($"Fel vid sparande: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                VisaFel($"✘ Fel vid sparande: {ex.Message}");
                 }
             }
 
@@ -279,77 +492,38 @@ namespace Bokhandel_Labb.ViewModels
             {
             LaddaButik1Böcker();
             LaddaButik2Böcker();
+            VisaInfo("Ändringar återställda");
             }
 
         private void Avbryt()
             {
             Application.Current.Windows.OfType<Views.BokbyteView>().FirstOrDefault()?.Close();
-            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()?.Focus(); // Fokus tillbaka till huvudfönstret, annars minimeras det.. enkel fix
-            }
-        }
-
-    // DTOs
-    public class ButikDTO : BaseViewModel
-        {
-        private int _butikId;
-        private string _butiksNamn;
-        private string _adress;
-
-        public int ButikId
-            {
-            get => _butikId;
-            set => SetProperty(ref _butikId, value);
+            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()?.Focus();
             }
 
-        public string ButiksNamn
+        // Helper metoder för statusmeddelanden
+        public void VisaSucces(string meddelande)
             {
-            get => _butiksNamn;
-            set => SetProperty(ref _butiksNamn, value);
+            StatusTextFärg = System.Windows.Media.Brushes.Green;
+            StatusMeddelande = meddelande;
             }
 
-        public string Adress
+        public void VisaFel(string meddelande)
             {
-            get => _adress;
-            set => SetProperty(ref _adress, value);
-            }
-        }
-
-    public class LagerSaldoDTO : BaseViewModel
-        {
-        private string _isbn;
-        private string _titel;
-        private string _författareNamn;
-        private int _antalILager;
-        private int _butikId;
-
-        public string Isbn
-            {
-            get => _isbn;
-            set => SetProperty(ref _isbn, value);
+            StatusTextFärg = System.Windows.Media.Brushes.Red;
+            StatusMeddelande = meddelande;
             }
 
-        public string Titel
+        public void VisaInfo(string meddelande)
             {
-            get => _titel;
-            set => SetProperty(ref _titel, value);
+            StatusTextFärg = System.Windows.Media.Brushes.Black;
+            StatusMeddelande = meddelande;
             }
 
-        public string FörfattareNamn
+        public void VisaVarning(string meddelande)
             {
-            get => _författareNamn;
-            set => SetProperty(ref _författareNamn, value);
-            }
-
-        public int AntalILager
-            {
-            get => _antalILager;
-            set => SetProperty(ref _antalILager, value);
-            }
-
-        public int ButikId
-            {
-            get => _butikId;
-            set => SetProperty(ref _butikId, value);
+            StatusTextFärg = System.Windows.Media.Brushes.Orange;
+            StatusMeddelande = meddelande;
             }
         }
     }

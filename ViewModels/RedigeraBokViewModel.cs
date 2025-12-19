@@ -1,11 +1,15 @@
 ﻿using Bokhandel_Labb.Commands;
+using Bokhandel_Labb.DTOs;
 using Bokhandel_Labb.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Diagnostics; // Debugg lägg till bok error
 
 namespace Bokhandel_Labb.ViewModels
     {
@@ -13,6 +17,12 @@ namespace Bokhandel_Labb.ViewModels
         {
         private readonly BokhandelContext _context;
         private List<string> _listISBN;
+        private CancellationTokenSource _validationCts;
+
+        public bool VisaNyFörfattareFält => ValdFörfattare != null && ValdFörfattare.FörfattarId == -1;
+        public bool VisaNyFörlagFält => ValtFörlag != null && ValtFörlag.FörlagId == -1;
+
+        // Properties
         private string _bokTitel;
         public string BokTitel
             {
@@ -21,7 +31,46 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _bokTitel, value))
                     {
-                    ValideraInputs();
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        private string _pris;
+        public string Pris
+            {
+            get => _pris;
+            set
+                {
+                if (SetProperty(ref _pris, value))
+                    {
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        private string _antalSidor;
+        public string AntalSidor
+            {
+            get => _antalSidor;
+            set
+                {
+                if (SetProperty(ref _antalSidor, value))
+                    {
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        private DateTime _datum = DateTime.Now;
+        public DateTime Utgivningsdatum
+            {
+            get => _datum;
+            set
+                {
+                if (SetProperty(ref _datum, value))
+                    {
+                    DebouncedValidation();
                     }
                 }
             }
@@ -34,20 +83,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _isbn, value))
                     {
-                    ValideraInputs();
-                    }
-                }
-            }
-
-        private string _forfattare;
-        public string Forfattare
-            {
-            get => _forfattare;
-            set
-                {
-                if (SetProperty(ref _forfattare, value))
-                    {
-                    ValideraInputs();
+                    DebouncedValidation();
                     }
                 }
             }
@@ -60,10 +96,11 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _antal, value))
                     {
-                    ValideraInputs();
+                    DebouncedValidation();
                     }
                 }
             }
+
         private string _språk;
         public string Språk
             {
@@ -72,7 +109,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _språk, value))
                     {
-                    ValideraInputs();
+                    DebouncedValidation();
                     }
                 }
             }
@@ -95,7 +132,65 @@ namespace Bokhandel_Labb.ViewModels
                 if (SetProperty(ref _valdButik, value))
                     {
                     _listISBN = LaddaISBNFrånButik(value);
-                    ValideraInputs();
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        public ObservableCollection<FörfattareDTO> FörfattareLista { get; set; }
+
+        private FörfattareDTO _valdFörfattare;
+        public FörfattareDTO ValdFörfattare
+            {
+            get => _valdFörfattare;
+            set
+                {
+                if (SetProperty(ref _valdFörfattare, value))
+                    {
+                    OnPropertyChanged(nameof(VisaNyFörfattareFält));
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        private string _nyFörfattareNamn;
+        public string NyFörfattareNamn
+            {
+            get => _nyFörfattareNamn;
+            set
+                {
+                if (SetProperty(ref _nyFörfattareNamn, value))
+                    {
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        public ObservableCollection<FörlagDTO> FörlagLista { get; set; }
+
+        private FörlagDTO _valtFörlag;
+        public FörlagDTO ValtFörlag
+            {
+            get => _valtFörlag;
+            set
+                {
+                if (SetProperty(ref _valtFörlag, value))
+                    {
+                    OnPropertyChanged(nameof(VisaNyFörlagFält));
+                    DebouncedValidation();
+                    }
+                }
+            }
+
+        private string _nyttFörlagNamn;
+        public string NyttFörlagNamn
+            {
+            get => _nyttFörlagNamn;
+            set
+                {
+                if (SetProperty(ref _nyttFörlagNamn, value))
+                    {
+                    DebouncedValidation();
                     }
                 }
             }
@@ -106,25 +201,103 @@ namespace Bokhandel_Labb.ViewModels
             get => _statusMeddelande;
             set => SetProperty(ref _statusMeddelande, value);
             }
+
         private System.Windows.Media.Brush _statusTextFärg = System.Windows.Media.Brushes.Black;
         public System.Windows.Media.Brush StatusTextFärg
             {
             get => _statusTextFärg;
             set => SetProperty(ref _statusTextFärg, value);
             }
+
         public ICommand OKCommand { get; }
         public ICommand CancelCommand { get; }
-
 
         public RedigeraBokViewModel()
             {
             _context = new BokhandelContext();
             Butik = new ObservableCollection<ButikDTO>();
+            FörfattareLista = new ObservableCollection<FörfattareDTO>();
+            FörlagLista = new ObservableCollection<FörlagDTO>();
 
             OKCommand = new RelayCommand(LäggTillBok);
             CancelCommand = new RelayCommand(Avbryt);
-
+           
+            Utgivningsdatum = DateTime.Now;
             LaddaButiker();
+            LaddaFörfattare();
+            LaddaFörlag();
+            }
+
+        private void LaddaFörfattare()
+            {
+            try
+                {
+                var författare = _context.Författares.ToList();
+                FörfattareLista.Clear();
+
+                FörfattareLista.Add(new FörfattareDTO
+                    {
+                    FörfattarId = -1,
+                    Förnamn = "➕ Lägg till",
+                    Efternamn = "ny författare"
+                    });
+
+                foreach (var f in författare)
+                    {
+                    FörfattareLista.Add(new FörfattareDTO
+                        {
+                        FörfattarId = f.Id,
+                        Förnamn = f.Förnamn,
+                        Efternamn = f.Efternamn
+                        });
+                    }
+
+                if (FörfattareLista.Count > 1)
+                    ValdFörfattare = FörfattareLista[1];
+                }
+            catch (Exception ex)
+                {
+                MessageBox.Show($"Fel vid laddning av författare: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
+        private void LaddaFörlag()
+            {
+            try
+                {
+                var förlag = _context.Förlags.ToList();
+                FörlagLista.Clear();
+
+                FörlagLista.Add(new FörlagDTO
+                    {
+                    FörlagId = -1,
+                    Namn = "➕ Lägg till nytt förlag"
+                    });
+
+                FörlagLista.Add(new FörlagDTO
+                    {
+                    FörlagId = 0,
+                    Namn = "(Inget förlag)"
+                    });
+
+                foreach (var f in förlag)
+                    {
+                    FörlagLista.Add(new FörlagDTO
+                        {
+                        FörlagId = f.Id,
+                        Namn = f.Namn,
+                        Land = f.Land,
+                        Webbplats = f.Webbplats
+                        });
+                    }
+
+                if (FörlagLista.Count > 1)
+                    ValtFörlag = FörlagLista[1]; // Välj "(Inget förlag)" som default
+                }
+            catch (Exception ex)
+                {
+                MessageBox.Show($"Fel vid laddning av förlag: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
 
         private void LaddaButiker()
@@ -173,163 +346,307 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
+        private async void DebouncedValidation()
+            {
+            _validationCts?.Cancel();
+            _validationCts = new CancellationTokenSource();
 
+            try
+                {
+                await Task.Delay(500, _validationCts.Token);
+                ValideraInputs();
+                }
+            catch (TaskCanceledException)
+                {
+                }
+            }
+
+        #region VALIDERING
         private void ValideraInputs()
             {
             StatusMeddelande = string.Empty;
             StatusTextFärg = System.Windows.Media.Brushes.Black;
+            EnableLäggTillBok = false;
 
-            if (!string.IsNullOrEmpty(BokTitel))
+            if (!ValideraBokTitel())
+                return;
+            if (!ValideraISBN())
+                return;
+            if (!ValideraSpråk())
+                return;
+            if (!ValideraBokAntal())
+                return;
+            if (!ValideraPris())
+                return;
+            if (!ValideraAntalSidor())
+                return;
+            if (!ValideraNyFörfattare())
+                return;
+            if (!ValideraNyttFörlag())
+                return;
+
+            if (AllaFältIfyllda())
                 {
-                if (string.IsNullOrWhiteSpace(BokTitel) || BokTitel.Trim().Length < 1)
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "Boktitel måste ha minst en bokstav";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-                }
-
-            if (!string.IsNullOrEmpty(ISBN))
-                {
-                if (string.IsNullOrWhiteSpace(ISBN))
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "ISBN får inte vara tom";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-
-                if (!ISBN.All(char.IsDigit))
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "ISBN får endast innehålla siffror";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-
-                if (ISBN.Length != 10 && ISBN.Length != 13)
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "ISBN måste vara mellan 10 eller 13 siffror";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-
-                if (_listISBN != null && _listISBN.Contains(ISBN))
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "ISBN-nummer finns redan i butiken";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-                }
-
-            if (!string.IsNullOrEmpty(Forfattare))
-                {
-                if (string.IsNullOrWhiteSpace(Forfattare))
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "Författare får inte vara tom";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-
-                var namnsDelar = Forfattare.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (namnsDelar.Length < 2)
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "Författare behöver förnamn och efternamn";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-                }
-            
-            if (!string.IsNullOrEmpty(Språk))
-                {
-                if (string.IsNullOrWhiteSpace(Språk) || Språk.Trim().Length < 2)
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "Språk måste ha minst två bokstäver";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-                }
-            if (!string.IsNullOrEmpty(BokAntal))
-                {
-                if (!int.TryParse(BokAntal, out var antal))
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "Bok antal måste vara ett nummer";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-
-                if (antal <= 0)
-                    {
-                    StatusTextFärg = System.Windows.Media.Brushes.Red;
-                    StatusMeddelande = "Bok antal måste vara större än 0";
-                    EnableLäggTillBok = false;
-                    return;
-                    }
-                }
-
-            // I know .. i know..
-            EnableLäggTillBok =
-                !string.IsNullOrWhiteSpace(BokTitel) &&
-                BokTitel.Trim().Length >= 1 &&
-                !string.IsNullOrWhiteSpace(ISBN) &&
-                ISBN.All(char.IsDigit) &&
-                ( ISBN.Length == 10 || ISBN.Length == 13 ) &&  // ÄNDRA DENNA RAD
-                !string.IsNullOrWhiteSpace(Språk) &&
-                Språk.Trim().Length >= 2 &&
-                !string.IsNullOrWhiteSpace(BokAntal) &&
-                !string.IsNullOrWhiteSpace(Forfattare) &&
-                Forfattare.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 2 &&
-                int.TryParse(BokAntal, out var validAntal) && validAntal > 0 &&
-                ( _listISBN == null || !_listISBN.Contains(ISBN) ) &&
-                ValdButik != null;
-
-
-            if (EnableLäggTillBok &&
-                !string.IsNullOrEmpty(BokTitel) &&
-                !string.IsNullOrEmpty(ISBN) &&
-                !string.IsNullOrEmpty(Forfattare) &&
-                !string.IsNullOrEmpty(Språk) &&
-                !string.IsNullOrEmpty(BokAntal))
-                {
+                EnableLäggTillBok = true;
                 StatusTextFärg = System.Windows.Media.Brushes.Yellow;
-                StatusMeddelande = $"Redo att lägga {BokAntal} styck(en) {BokTitel} till  {ValdButik.ButiksNamn}";
+                StatusMeddelande = $"✓ Redo att lägga till {BokAntal} st {BokTitel} i {ValdButik?.ButiksNamn}";
                 }
             }
+
+        private bool ValideraBokTitel()
+            {
+            if (string.IsNullOrEmpty(BokTitel))
+                return true;
+
+            if (string.IsNullOrWhiteSpace(BokTitel))
+                {
+                VisaFel("✘ Boktitel får inte vara tom");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraISBN()
+            {
+            if (string.IsNullOrEmpty(ISBN))
+                return true;
+
+            if (string.IsNullOrWhiteSpace(ISBN))
+                {
+                VisaFel("✘ ISBN får inte vara tom");
+                return false;
+                }
+
+            if (!ISBN.All(char.IsDigit))
+                {
+                VisaFel("✘ ISBN får endast innehålla siffror");
+                return false;
+                }
+
+            if (ISBN.Length != 10 && ISBN.Length != 13)
+                {
+                VisaFel("✘ ISBN måste vara 10 eller 13 siffror");
+                return false;
+                }
+
+            if (_listISBN != null && _listISBN.Contains(ISBN))
+                {
+                VisaFel("✘ ISBN finns redan i butiken");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraSpråk()
+            {
+            if (string.IsNullOrEmpty(Språk))
+                return true;
+
+            if (string.IsNullOrWhiteSpace(Språk) || Språk.Trim().Length < 2)
+                {
+                VisaFel("✘ Språk måste ha minst 2 bokstäver");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraBokAntal()
+            {
+            if (string.IsNullOrEmpty(BokAntal))
+                return true;
+
+            if (!int.TryParse(BokAntal, out var antal))
+                {
+                VisaFel("✘ Antal måste vara ett nummer");
+                return false;
+                }
+
+            if (antal <= 0)
+                {
+                VisaFel("✘ Antal måste vara större än 0");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraPris()
+            {
+            if (string.IsNullOrEmpty(Pris))
+                return true;
+
+            if (!decimal.TryParse(Pris, out var pris))
+                {
+                VisaFel("✘ Pris måste vara ett nummer");
+                return false;
+                }
+
+            if (pris < 0)
+                {
+                VisaFel("✘ Pris kan inte vara negativt");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraAntalSidor()
+            {
+            if (string.IsNullOrEmpty(AntalSidor))
+                return true;
+
+            if (!int.TryParse(AntalSidor, out var sidor))
+                {
+                VisaFel("✘ Antal sidor måste vara ett nummer");
+                return false;
+                }
+
+            if (sidor <= 0)
+                {
+                VisaFel("✘ Antal sidor måste vara större än 0");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraNyFörfattare()
+            {
+            if (ValdFörfattare == null || ValdFörfattare.FörfattarId != -1)
+                return true;
+
+            if (string.IsNullOrWhiteSpace(NyFörfattareNamn))
+                {
+                VisaFel("✘ Ange namn på ny författare");
+                return false;
+                }
+
+            var namnDelar = NyFörfattareNamn.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (namnDelar.Length < 2)
+                {
+                VisaFel("✘ Ange både förnamn och efternamn");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool ValideraNyttFörlag()
+            {
+            if (ValtFörlag == null || ValtFörlag.FörlagId != -1)
+                return true;
+
+            if (string.IsNullOrWhiteSpace(NyttFörlagNamn))
+                {
+                VisaFel("✘ Ange namn på nytt förlag");
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool AllaFältIfyllda()
+            {
+            bool författareOK = ( ValdFörfattare != null && ValdFörfattare.FörfattarId > 0 ) ||
+                               ( ValdFörfattare != null && ValdFörfattare.FörfattarId == -1 && !string.IsNullOrWhiteSpace(NyFörfattareNamn) );
+
+            return !string.IsNullOrWhiteSpace(BokTitel) &&
+                   !string.IsNullOrWhiteSpace(ISBN) &&
+                   författareOK &&
+                   !string.IsNullOrWhiteSpace(Språk) &&
+                   !string.IsNullOrWhiteSpace(BokAntal) &&
+                   ValdButik != null;
+            }
+
+        private void VisaFel(string meddelande)
+            {
+            StatusTextFärg = System.Windows.Media.Brushes.Red;
+            StatusMeddelande = meddelande;
+            EnableLäggTillBok = false;
+            }
+        #endregion
 
         private void LäggTillBok()
             {
             try
                 {
-                var namnDelar = Forfattare.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                string forNamn = namnDelar[0];
-                string efterNamn = string.Join(" ", namnDelar.Skip(1));
-
-                // Konvertera och formatera ISBN
                 string formateratISBN = KonverteraISBN(ISBN);
+
+
+                int författareId;
+                if (ValdFörfattare.FörfattarId == -1)
+                    {
+
+                    var namnDelar = NyFörfattareNamn.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    string forNamn = namnDelar[0];
+                    string efterNamn = string.Join(" ", namnDelar.Skip(1));
+
+                    var nyFörfattare = new Författare
+                        {
+                        Förnamn = forNamn,
+                        Efternamn = efterNamn
+                        };
+                    _context.Författares.Add(nyFörfattare);
+                    _context.SaveChanges();
+                    författareId = nyFörfattare.Id;
+                    }
+                else
+                    {
+                    författareId = ValdFörfattare.FörfattarId;
+                    }
+
+
+                int? förlagId = null;
+                if (ValtFörlag != null)
+                    {
+                    if (ValtFörlag.FörlagId == -1)
+                        {
+
+                        var nyttFörlag = new Förlag
+                            {
+                            Namn = NyttFörlagNamn.Trim()
+                            };
+                        _context.Förlags.Add(nyttFörlag);
+                        _context.SaveChanges();
+                        förlagId = nyttFörlag.Id;
+                        }
+                    else if (ValtFörlag.FörlagId > 0)
+                        {
+                        förlagId = ValtFörlag.FörlagId;
+                        }
+                    }
+
 
                 var nyBok = new Böcker
                     {
                     Titel = BokTitel,
                     Isbn = formateratISBN,
-                    Språk = Språk.Trim()
+                    Språk = Språk.Trim(),
+                    Utgivningsdatum = DateOnly.FromDateTime(Utgivningsdatum),
+                    FörlagId = förlagId
                     };
+
+
+                if (!string.IsNullOrWhiteSpace(Pris) && decimal.TryParse(Pris, out var pris))
+                    {
+                    nyBok.Pris = pris;
+                    }
+
+                if (!string.IsNullOrWhiteSpace(AntalSidor) && int.TryParse(AntalSidor, out var sidor))
+                    {
+                    nyBok.Sidantal = sidor;
+                    }
+
                 _context.Böckers.Add(nyBok);
                 _context.SaveChanges();
 
-                var bokFörfattare = new Författare
-                    {
-                    Förnamn = forNamn,
-                    Efternamn = efterNamn
-                    };
-                _context.Författares.Add(bokFörfattare);
-                _context.SaveChanges();
+                // Rawdog SQL för att lägga till i BokFörfattare (måste göras separat pga många-till-många relation)
+                _context.Database.ExecuteSqlRaw(
+                    "INSERT INTO BokFörfattare (ISBN, FörfattareID) VALUES ({0}, {1})",
+                    formateratISBN, författareId);
 
                 var lagerSaldo = new LagerSaldo
                     {
@@ -339,19 +656,32 @@ namespace Bokhandel_Labb.ViewModels
                     };
                 _context.LagerSaldos.Add(lagerSaldo);
                 _context.SaveChanges();
+
                 _listISBN.Add(formateratISBN);
 
 
-
-                // Rensa fält
                 BokTitel = string.Empty;
                 ISBN = string.Empty;
-                Forfattare = string.Empty;
+                NyFörfattareNamn = string.Empty;
+                NyttFörlagNamn = string.Empty;
                 Språk = string.Empty;
                 BokAntal = string.Empty;
+                Pris = string.Empty;
+                AntalSidor = string.Empty;
+                Utgivningsdatum = DateTime.Now;
+
+
+                if (FörfattareLista.Count > 1)
+                    ValdFörfattare = FörfattareLista[1];
+                if (FörlagLista.Count > 1)
+                    ValtFörlag = FörlagLista[1];
+
                 StatusTextFärg = System.Windows.Media.Brushes.Green;
-                StatusMeddelande = $"✓ Bok tillagd i butik {ValdButik.ButiksNamn}! ✓";
-                
+                StatusMeddelande = $"✓ Bok tillagd i {ValdButik.ButiksNamn}! ✓";
+
+                // Ladda om listor för att inkludera nya författare/förlag
+                LaddaFörfattare();
+                LaddaFörlag();
                 }
             catch (Exception ex)
                 {
@@ -372,27 +702,19 @@ namespace Bokhandel_Labb.ViewModels
             {
             Application.Current.Windows.OfType<Views.RedigeraBokView>().FirstOrDefault()?.Close();
             }
-        /// <summary>
-        /// Denna metod konverterar ett ISBN-10 nummer till ISBN-13 format. Eftersom jag inte läste på om ISBN ordentligt..
-        /// Fick hjälp av AI för att få fram denna kodsnutt.
-        /// </summary>
-        /// <param name="isbn"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
+
         private string KonverteraISBN(string isbn)
             {
             isbn = isbn.Replace("-", "").Replace(" ", "").Trim();
 
             if (isbn.Length == 13)
                 {
-                return isbn; // Redan ISBN-13
+                return isbn;
                 }
             else if (isbn.Length == 10)
                 {
-                // Konvertera ISBN-10 till ISBN-13
                 string isbn13 = "978" + isbn.Substring(0, 9);
 
-                // Beräkna ny checksiffra för ISBN-13
                 int sum = 0;
                 for (int i = 0; i < 12; i++)
                     {

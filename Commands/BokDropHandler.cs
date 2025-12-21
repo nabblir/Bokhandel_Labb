@@ -30,7 +30,6 @@ namespace Bokhandel_Labb.Helpers
                 if (_isOverTrash)
                     {
                     _isOverTrash = false;
-                    _view?.AnimateTrashLeave();
                     }
                 return;
                 }
@@ -54,7 +53,6 @@ namespace Bokhandel_Labb.Helpers
                 if (!_isOverTrash)
                     {
                     _isOverTrash = true;
-                    _view?.AnimateTrashEnter();
                     }
                 return;
                 }
@@ -64,7 +62,6 @@ namespace Bokhandel_Labb.Helpers
                 if (_isOverTrash)
                     {
                     _isOverTrash = false;
-                    _view?.AnimateTrashLeave();
                     }
                 }
 
@@ -94,7 +91,6 @@ namespace Bokhandel_Labb.Helpers
 
             // Återställ state och animering
             _isOverTrash = false;
-            _view?.AnimateTrashLeave();
 
             var sourceListBox = GetListBoxFromVisualElement(dropInfo.DragInfo.VisualSource);
             var targetElement = dropInfo.VisualTarget;

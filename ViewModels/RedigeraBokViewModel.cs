@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using static Bokhandel_Labb.Commands.Logger;
 
 namespace Bokhandel_Labb.ViewModels
     {
@@ -388,7 +389,7 @@ namespace Bokhandel_Labb.ViewModels
             if (AllaFältIfyllda())
                 {
                 EnableLäggTillBok = true;
-                StatusTextFärg = System.Windows.Media.Brushes.Yellow;
+                StatusTextFärg = System.Windows.Media.Brushes.DarkSeaGreen;
                 StatusMeddelande = $"✓ Redo att lägga till {BokAntal} st {BokTitel} i {ValdButik?.ButiksNamn}";
                 }
             }
@@ -658,7 +659,11 @@ namespace Bokhandel_Labb.ViewModels
                 _context.SaveChanges();
 
                 _listISBN.Add(formateratISBN);
-
+                LoggaHändelse(_context, "Admin", 
+                    _valdButik.ButiksNamn,
+                    _valdButik.ButikId,
+                    $"{BokAntal} st av {BokTitel} tillagd(a) i lagret",
+                    "➕");
 
                 BokTitel = string.Empty;
                 ISBN = string.Empty;

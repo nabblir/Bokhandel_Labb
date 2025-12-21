@@ -38,6 +38,7 @@ public partial class BokhandelContext : DbContext
     public virtual DbSet<Ordrar> Ordrars { get; set; }
 
     public virtual DbSet<TitlarPerFörfattare> TitlarPerFörfattares { get; set; }
+    public virtual DbSet<LoggHistorik> LoggHistorik { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -45,6 +46,28 @@ public partial class BokhandelContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<LoggHistorik>(entity =>
+        {
+            entity.HasKey(e => e.LoggId);
+
+            entity.ToTable("LoggHistorik");
+
+            entity.Property(e => e.LoggId).HasColumnName("LoggId");
+            entity.Property(e => e.User)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.Butiksnamn);
+            entity.Property(e => e.ButikId)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.Datum).HasColumnType("datetime");
+            entity.Property(e => e.Händelse);
+            entity.Property(e => e.LogTyp)
+                .HasMaxLength(10)
+                .IsFixedLength();
+        });
+
+        OnModelCreatingPartial(modelBuilder);
         modelBuilder.Entity<Butiker>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Butiker__3214EC27B7B476AB");

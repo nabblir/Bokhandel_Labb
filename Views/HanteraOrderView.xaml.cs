@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace Bokhandel_Labb.Views
 {
     /// <summary>
-    /// Interaction logic for HanteraLagerView.xaml
+    /// Interaction logic for HanteraOrderView.xaml
     /// </summary>
-    public partial class HanteraLagerView : UserControl
+    public partial class HanteraOrderView : UserControl
     {
-        public HanteraLagerView()
+        public HanteraOrderView()
         {
             InitializeComponent();
         }

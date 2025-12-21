@@ -11,14 +11,14 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-
+using static Bokhandel_Labb.Commands.Logger;
 namespace Bokhandel_Labb.ViewModels
     {
     public class BokbyteViewModel : BaseViewModel
         {
         private readonly BokhandelContext _context;
         private bool _isUpdatingButiker = false;
-
+        
         // Collections
         public ObservableCollection<ButikDTO> AllaButiker { get; set; }
         public ObservableCollection<LagerSaldoDTO> Butik1Böcker { get; set; }
@@ -385,7 +385,14 @@ namespace Bokhandel_Labb.ViewModels
 
                     if (saldo != null)
                         {
-                        saldo.Antal = bok.AntalILager;
+                        if (saldo.Antal != bok.AntalILager)
+                            {
+                            int skillnad = bok.AntalILager - saldo.Antal;
+                            saldo.Antal = bok.AntalILager;
+
+                            LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                                $"'{bok.Titel}' lagersaldo ändrat: {saldo.Antal + skillnad} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
+                            }
                         }
                     else if (bok.AntalILager > 0)
                         {
@@ -395,6 +402,9 @@ namespace Bokhandel_Labb.ViewModels
                             Isbn = bok.Isbn,
                             Antal = bok.AntalILager
                             });
+
+                            LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                            $"'{bok.Titel}' tillagd i lagret ({bok.AntalILager} st)", "➕");
                         }
                     }
 
@@ -409,7 +419,14 @@ namespace Bokhandel_Labb.ViewModels
                         .FirstOrDefault(ls => ls.ButikId == ValdButik1.ButikId && ls.Isbn == isbn);
                     if (saldo != null)
                         {
+                        // Hämta boktitel för loggning
+                        var bokInfo = _context.Böckers.FirstOrDefault(b => b.Isbn == isbn);
+                        string bokTitel = bokInfo?.Titel ?? isbn;
+
                         _context.LagerSaldos.Remove(saldo);
+
+                        LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                            $"'{bokTitel}' borttagen från lagret", "🗑️");
                         }
                     }
 
@@ -421,7 +438,14 @@ namespace Bokhandel_Labb.ViewModels
 
                     if (saldo != null)
                         {
-                        saldo.Antal = bok.AntalILager;
+                        if (saldo.Antal != bok.AntalILager)
+                            {
+                            int skillnad = bok.AntalILager - saldo.Antal;
+                            saldo.Antal = bok.AntalILager;
+
+                            LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
+                                $"'{bok.Titel}' lagersaldo ändrat: {saldo.Antal + skillnad} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
+                            }
                         }
                     else if (bok.AntalILager > 0)
                         {
@@ -431,6 +455,9 @@ namespace Bokhandel_Labb.ViewModels
                             Isbn = bok.Isbn,
                             Antal = bok.AntalILager
                             });
+
+                        LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
+                            $"'{bok.Titel}' tillagd i lagret ({bok.AntalILager} st)", "➕");
                         }
                     }
 
@@ -445,11 +472,18 @@ namespace Bokhandel_Labb.ViewModels
                         .FirstOrDefault(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == isbn);
                     if (saldo != null)
                         {
+                        // Hämta boktitel för loggning
+                        var bokInfo = _context.Böckers.FirstOrDefault(b => b.Isbn == isbn);
+                        string bokTitel = bokInfo?.Titel ?? isbn;
+
                         _context.LagerSaldos.Remove(saldo);
+
+                        LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
+                            $"'{bokTitel}' borttagen från lagret", "🗑️");
                         }
                     }
 
-                // Tar bort LagerSaldo med 0 böcker (för säkerhets skull)
+                // Tar bort LagerSaldo med 0 böcker
                 var tomtLager = _context.LagerSaldos
                     .Where(ls => ls.Antal <= 0 &&
                         ( ls.ButikId == ValdButik1.ButikId || ls.ButikId == ValdButik2.ButikId ))
@@ -468,7 +502,7 @@ namespace Bokhandel_Labb.ViewModels
                 }
             catch (Exception ex)
                 {
-                VisaFel($"✘ Fel vid sparande: {ex.Message}");
+                VisaFel($"✘ Fel vid sparande: {ex.InnerException?.Message}");
                 }
             }
 

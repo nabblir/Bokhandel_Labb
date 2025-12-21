@@ -25,5 +25,12 @@ namespace Bokhandel_Labb.DTOs
             get => _adress;
             set => SetProperty(ref _adress, value);
             }
+
+        public string _stad;
+        public string Stad
+            {
+            get => _stad;
+            set => SetProperty(ref _stad, value);
+            }
         }
     }

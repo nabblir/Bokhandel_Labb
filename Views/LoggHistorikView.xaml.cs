@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bokhandel_Labb.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +17,14 @@ using System.Windows.Shapes;
 namespace Bokhandel_Labb.Views
 {
     /// <summary>
-    /// Interaction logic for LagersaldoView.xaml
+    /// Interaction logic for LoggHistorikView.xaml
     /// </summary>
-    public partial class LagersaldoView : UserControl
+    public partial class LoggHistorikView : Window
     {
-        public LagersaldoView()
+        public LoggHistorikView(LoggHistorikViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
     }
 }

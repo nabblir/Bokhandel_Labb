@@ -49,7 +49,7 @@
                 FontSize="18" BorderBrush="Black"/>
             <!-- TODO -->
             <Button Grid.Row="0" Grid.Column="1"
-                Content="📦 Hantera ordrar"
+                Content="📦 Orderhistorik"
                 Margin="10"
                 FontSize="18"
                 IsEnabled="False" BorderBrush="Black"/>
@@ -64,7 +64,8 @@
                 Content="📊 Logghistorik"
                 Margin="10"
                 FontSize="18"
-                IsEnabled="False" BorderBrush="Black"/>
+                Command="{Binding ÖppnaLoggHistorikCommand}"
+                BorderBrush="Black"/>
         </Grid>
 
         <!-- Status bar -->

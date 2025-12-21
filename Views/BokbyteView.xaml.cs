@@ -1,5 +1,6 @@
 ﻿using Bokhandel_Labb.ViewModels;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 
 namespace Bokhandel_Labb.Views
@@ -12,17 +13,12 @@ namespace Bokhandel_Labb.Views
             DataContext = viewModel;
             }
 
-        // Anropas från BokDropHandler
-        public void AnimateTrashEnter()
+        private void ListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
             {
-            var storyboard = (Storyboard)this.Resources["TrashScaleUpStoryboard"];
-            storyboard?.Begin();
-            }
-
-        public void AnimateTrashLeave()
-            {
-            var storyboard = (Storyboard)this.Resources["TrashScaleDownStoryboard"];
-            storyboard?.Begin();
+            if (DataContext is BokbyteViewModel viewModel && viewModel.ValdBok != null)
+                {
+                viewModel.ÄndraLagersaldoCommand?.Execute(null);
+                }
             }
         }
     }

@@ -1,5 +1,5 @@
 ﻿using Bokhandel_Labb.Commands;
-using Bokhandel_Labb.DTOs;
+using Bokhandel_Labb.DTO;
 using Bokhandel_Labb.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -32,7 +32,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _bokTitel, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -45,7 +45,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _pris, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -58,7 +58,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _antalSidor, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -71,7 +71,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _datum, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -84,7 +84,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _isbn, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -97,7 +97,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _antal, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -110,7 +110,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _språk, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -133,7 +133,7 @@ namespace Bokhandel_Labb.ViewModels
                 if (SetProperty(ref _valdButik, value))
                     {
                     _listISBN = LaddaISBNFrånButik(value);
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -149,7 +149,7 @@ namespace Bokhandel_Labb.ViewModels
                 if (SetProperty(ref _valdFörfattare, value))
                     {
                     OnPropertyChanged(nameof(VisaNyFörfattareFält));
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -162,7 +162,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _nyFörfattareNamn, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -178,7 +178,7 @@ namespace Bokhandel_Labb.ViewModels
                 if (SetProperty(ref _valtFörlag, value))
                     {
                     OnPropertyChanged(nameof(VisaNyFörlagFält));
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -191,7 +191,7 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _nyttFörlagNamn, value))
                     {
-                    DebouncedValidation();
+                    AsyncValidation();
                     }
                 }
             }
@@ -293,7 +293,7 @@ namespace Bokhandel_Labb.ViewModels
                     }
 
                 if (FörlagLista.Count > 1)
-                    ValtFörlag = FörlagLista[1]; // Välj "(Inget förlag)" som default
+                    ValtFörlag = FörlagLista[1];
                 }
             catch (Exception ex)
                 {
@@ -347,7 +347,7 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        private async void DebouncedValidation()
+        private async void AsyncValidation()
             {
             _validationCts?.Cancel();
             _validationCts = new CancellationTokenSource();

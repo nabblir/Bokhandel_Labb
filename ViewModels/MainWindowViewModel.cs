@@ -17,6 +17,8 @@ namespace Bokhandel_Labb.ViewModels
         public ICommand ÖppnaBokbyteCommand { get; }
         public ICommand ÖppnaRedigeraBokCommand { get; }
         public ICommand ÖppnaLoggHistorikCommand { get; }
+        public ICommand ÖppnaOrderHistorikCommand { get; }
+        public ICommand AvslutaCommand { get; }
 
         private string _anslutningsStatus;
         public string AnslutningsStatus
@@ -31,6 +33,8 @@ namespace Bokhandel_Labb.ViewModels
             ÖppnaBokbyteCommand = new RelayCommand(ÖppnaBokbyte);
             ÖppnaRedigeraBokCommand = new RelayCommand(ÖppnaRedigeraBok);
             ÖppnaLoggHistorikCommand = new RelayCommand(ÖppnaLoggHistorik);
+            ÖppnaOrderHistorikCommand = new RelayCommand(ÖppnaOrderHistorik);
+            AvslutaCommand = new RelayCommand(Avsluta);
             TestaAnslutning();
             }
 
@@ -58,6 +62,18 @@ namespace Bokhandel_Labb.ViewModels
             loggHistorikWindow.Show();
             }
 
+
+        private void ÖppnaOrderHistorik()
+            {
+            var viewModel = new HanteraOrderViewModel();
+            var orderHistorikWindow = new HanteraOrderView(viewModel);
+            orderHistorikWindow.Owner = Application.Current.MainWindow;
+            orderHistorikWindow.Show();
+            }
+        private void Avsluta()
+            {
+            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()?.Close();
+            }
         private void TestaAnslutning()
             {
             using (var context = new BokhandelContext())

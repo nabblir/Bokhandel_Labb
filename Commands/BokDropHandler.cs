@@ -1,4 +1,4 @@
-﻿using Bokhandel_Labb.DTOs;
+﻿using Bokhandel_Labb.DTO;
 using Bokhandel_Labb.ViewModels;
 using Bokhandel_Labb.Views;
 using GongSolutions.Wpf.DragDrop;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Bokhandel_Labb.Helpers
+namespace Bokhandel_Labb.Commands
     {
     public class BokDropHandler : IDropTarget
         {
@@ -26,7 +26,7 @@ namespace Bokhandel_Labb.Helpers
                 {
                 dropInfo.Effects = DragDropEffects.None;
 
-                // Återställ om vi lämnar drag helt
+
                 if (_isOverTrash)
                     {
                     _isOverTrash = false;
@@ -49,7 +49,6 @@ namespace Bokhandel_Labb.Helpers
                 dropInfo.Effects = DragDropEffects.Move;
                 dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
 
-                // Animera bara om vi inte redan är över papperskorgen
                 if (!_isOverTrash)
                     {
                     _isOverTrash = true;
@@ -58,7 +57,6 @@ namespace Bokhandel_Labb.Helpers
                 }
             else
                 {
-                // Vi är inte över papperskorg - återställ om vi var det tidigare
                 if (_isOverTrash)
                     {
                     _isOverTrash = false;
@@ -89,7 +87,7 @@ namespace Bokhandel_Labb.Helpers
             if (draggedBook == null)
                 return;
 
-            // Återställ state och animering
+            // Återställ state och animering - !!depricated!!
             _isOverTrash = false;
 
             var sourceListBox = GetListBoxFromVisualElement(dropInfo.DragInfo.VisualSource);
@@ -177,7 +175,6 @@ namespace Bokhandel_Labb.Helpers
             {
             if (element is Border border)
                 {
-                // Matcha ENDAST TrashBorder med exakt namn
                 if (border.Name == "TrashBorder")
                     {
                     return true;

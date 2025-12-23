@@ -67,6 +67,53 @@ public partial class BokhandelContext : DbContext
                 .IsFixedLength();
         });
 
+        modelBuilder.Entity<Ordrar>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("Ordrar");
+
+            entity.Property(e => e.Id).HasColumnName("Id");
+            entity.Property(e => e.KundId).HasColumnName("KundId");
+            entity.Property(e => e.ButikId).HasColumnName("ButikId");
+            entity.Property(e => e.Orderdatum).HasColumnType("datetime");
+            entity.Property(e => e.TotalBelopp).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Status).HasMaxLength(50);
+
+            entity.HasOne(d => d.Kund)
+                .WithMany()
+                .HasForeignKey(d => d.KundId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Butik)
+                .WithMany()
+                .HasForeignKey(d => d.ButikId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<OrderRader>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("OrderRader");
+
+            entity.Property(e => e.Id).HasColumnName("Id");
+            entity.Property(e => e.OrderId).HasColumnName("OrderID");
+            entity.Property(e => e.Isbn).HasColumnName("ISBN")
+                .HasMaxLength(13)
+                .IsFixedLength();
+            entity.Property(e => e.Antal);
+            entity.Property(e => e.Pris).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.OrderRaders)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.IsbnNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.Isbn)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         OnModelCreatingPartial(modelBuilder);
         modelBuilder.Entity<Butiker>(entity =>
         {

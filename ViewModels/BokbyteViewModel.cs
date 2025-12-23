@@ -1,6 +1,5 @@
 ﻿using Bokhandel_Labb.Commands;
-using Bokhandel_Labb.DTOs;
-using Bokhandel_Labb.Helpers;
+using Bokhandel_Labb.DTO;
 using Bokhandel_Labb.Models;
 using Bokhandel_Labb.Views;
 using GongSolutions.Wpf.DragDrop;
@@ -173,7 +172,6 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (dialog.Antal == 0)
                     {
-                    // Ta bort från collection om antal är 0
                     sourceCollection.Remove(ValdBok);
                     VisaVarning($"⚠ '{bokTitel}' har satts till 0 och kommer tas bort från {sourceButik.ButiksNamn}. Klicka 'Spara Ändringar' för att verkställa.");
                     }
@@ -366,7 +364,6 @@ namespace Bokhandel_Labb.ViewModels
             {
             try
                 {
-                // Hämta ALLA ISBN från båda butikerna i databasen
                 var allaISBNButik1 = _context.LagerSaldos
                     .Where(ls => ls.ButikId == ValdButik1.ButikId)
                     .Select(ls => ls.Isbn)
@@ -387,11 +384,12 @@ namespace Bokhandel_Labb.ViewModels
                         {
                         if (saldo.Antal != bok.AntalILager)
                             {
+                            int gammaltAntal = saldo.Antal;
                             int skillnad = bok.AntalILager - saldo.Antal;
                             saldo.Antal = bok.AntalILager;
 
                             LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
-                                $"'{bok.Titel}' lagersaldo ändrat: {saldo.Antal + skillnad} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
+                                $"'{bok.Titel}' lagersaldo ändrat: {gammaltAntal} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
                             }
                         }
                     else if (bok.AntalILager > 0)
@@ -408,7 +406,6 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-                // Ta bort böcker från Butik 1 som finns i DB men inte i collection
                 var borttagnaBöckerButik1 = allaISBNButik1
                     .Where(isbn => !Butik1Böcker.Any(b => b.Isbn == isbn))
                     .ToList();
@@ -440,11 +437,12 @@ namespace Bokhandel_Labb.ViewModels
                         {
                         if (saldo.Antal != bok.AntalILager)
                             {
+                            int gammaltAntal = saldo.Antal;
                             int skillnad = bok.AntalILager - saldo.Antal;
                             saldo.Antal = bok.AntalILager;
 
                             LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
-                                $"'{bok.Titel}' lagersaldo ändrat: {saldo.Antal + skillnad} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
+                                $"'{bok.Titel}' lagersaldo ändrat: {gammaltAntal} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
                             }
                         }
                     else if (bok.AntalILager > 0)
@@ -461,7 +459,7 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-                // Ta bort böcker från Butik 2 som finns i DB men inte i collection
+
                 var borttagnaBöckerButik2 = allaISBNButik2
                     .Where(isbn => !Butik2Böcker.Any(b => b.Isbn == isbn))
                     .ToList();
@@ -472,7 +470,7 @@ namespace Bokhandel_Labb.ViewModels
                         .FirstOrDefault(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == isbn);
                     if (saldo != null)
                         {
-                        // Hämta boktitel för loggning
+
                         var bokInfo = _context.Böckers.FirstOrDefault(b => b.Isbn == isbn);
                         string bokTitel = bokInfo?.Titel ?? isbn;
 
@@ -483,7 +481,7 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-                // Tar bort LagerSaldo med 0 böcker
+
                 var tomtLager = _context.LagerSaldos
                     .Where(ls => ls.Antal <= 0 &&
                         ( ls.ButikId == ValdButik1.ButikId || ls.ButikId == ValdButik2.ButikId ))
@@ -496,7 +494,7 @@ namespace Bokhandel_Labb.ViewModels
 
                 VisaSucces("✓ Ändringar sparade!");
 
-                // Ladda om för att visa korrekt data
+
                 LaddaButik1Böcker();
                 LaddaButik2Böcker();
                 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bokhandel_Labb.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,11 +19,22 @@ namespace Bokhandel_Labb.Views
     /// <summary>
     /// Interaction logic for HanteraOrderView.xaml
     /// </summary>
-    public partial class HanteraOrderView : UserControl
+    public partial class HanteraOrderView : Window
     {
-        public HanteraOrderView()
+        public HanteraOrderView(HanteraOrderViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
-    }
+
+        private void Order_DoubleClick(object sender, MouseButtonEventArgs e)
+            {
+            var viewModel = DataContext as HanteraOrderViewModel;
+            if (viewModel?.ValdOrder != null)
+                {
+                var detaljView = new HanteraOrderSingelDialog(viewModel);
+                detaljView.ShowDialog();
+                }
+            }
+        }
 }

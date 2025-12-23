@@ -1,6 +1,6 @@
 ﻿using Bokhandel_Labb.ViewModels;
 
-namespace Bokhandel_Labb.DTOs
+namespace Bokhandel_Labb.DTO
     {
     public class FörlagDTO : BaseViewModel
         {

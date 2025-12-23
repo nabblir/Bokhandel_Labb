@@ -12,17 +12,25 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Bokhandel_Labb.ViewModels;
 
 namespace Bokhandel_Labb.Views
 {
     /// <summary>
-    /// Interaction logic for HanteraForfattareView.xaml
+    /// Interaction logic for HanteraOrderSingelDialog.xaml
     /// </summary>
-    public partial class HanteraForfattareView : UserControl
-    {
-        public HanteraForfattareView()
+    public partial class HanteraOrderSingelDialog : Window
         {
+        public HanteraOrderSingelDialog(HanteraOrderViewModel viewModel)
+            {
             InitializeComponent();
+            Owner = Application.Current.Windows.OfType<HanteraOrderView>().FirstOrDefault();
+            DataContext = viewModel;
+            }
+
+        private void StängButton_Click(object sender, RoutedEventArgs e)
+            {
+            Close();
+            }
         }
     }
-}

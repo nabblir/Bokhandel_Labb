@@ -7,32 +7,133 @@
         mc:Ignorable="d"
         FontFamily="Bahnschrift SemiLight"
         WindowStartupLocation="CenterScreen"
-        Title="Bokeditor Millenium 9000 - sponsrad av Staten" 
-        Height="450" 
-        Width="800">
+        Title="Bokeditor Millenium 9000  - Statens misslyckade biblioteksapp" 
+        Height="700" 
+        Width="1000"
+        Background="#FF2F4F4F">
+
+    <Window.Resources>
+        <!-- Button Style med IsPressed feedback -->
+        <Style x:Key="MenuButton" TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#FF3A5A5A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF5A7A7A"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Margin" Value="15"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" 
+                                                ShadowDepth="3" 
+                                                Opacity="0.4"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#FF4A6A6A"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#FF6A8A8A"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="ButtonBorder" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#FF2A4A4A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Exit Button Style -->
+        <Style x:Key="ExitButton" TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#FFE57373"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D32F2F"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="5" 
+                                                ShadowDepth="2" 
+                                                Opacity="0.3"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#FFD32F2F"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="ButtonBorder" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="80"/>
-            <!-- Header -->
-            <RowDefinition Height="*"/>
-            <!-- Content -->
-            <RowDefinition Height="30"/>
-            <!-- Status bar -->
-        </Grid.RowDefinitions>
-
-        <!-- Header med bakgrund -->
-        <Border Grid.Row="0" Background="#2196F3">
-            <TextBlock Text="Bokeditor Millenium 9000 (100% Failsafe edition)" 
-                   FontSize="22" 
-                   FontWeight="Bold" 
-                   Foreground="White"
-                   HorizontalAlignment="Center" 
-                   VerticalAlignment="Center" FontFamily="Comic Sans MS"/>
+        <!-- Header Band -->
+        <Border Background="#FF1A3333" 
+                Height="90" 
+                VerticalAlignment="Top"
+                Panel.ZIndex="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" 
+                                ShadowDepth="4" 
+                                Opacity="0.3"/>
+            </Border.Effect>
+            <Grid Margin="30,0">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="📚 Bokeditor Millenium 9000" 
+                               FontSize="32" 
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Hopplös bokhantering för moderna butiker" 
+                               FontSize="13" 
+                               Foreground="#B0C4C4"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- Menu grid -->
-        <Grid Grid.Row="1" Margin="50">
+        <!-- Main Content -->
+        <Grid Margin="40,110,40,80">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -41,40 +142,68 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <!-- DONE -->
+
+            <!-- Redigera lager -->
             <Button Grid.Row="0" Grid.Column="0"
-                Content="📚 Redigera lager" 
-                Command="{Binding ÖppnaBokbyteCommand}"
-                Margin="10"
-                FontSize="18" BorderBrush="Black"/>
-            <!-- TODO -->
+                    Content="📚 Redigera lager" 
+                    Command="{Binding ÖppnaBokbyteCommand}"
+                    Style="{StaticResource MenuButton}"
+                    Height="150"/>
+
+            <!-- Orderhistorik -->
             <Button Grid.Row="0" Grid.Column="1"
-                Content="📦 Orderhistorik"
-                Margin="10"
-                FontSize="18"
-                IsEnabled="False" BorderBrush="Black"/>
-            <!-- TODO -->
+                    Content="📦 Orderhistorik"
+                    Command="{Binding ÖppnaOrderHistorikCommand}"
+                    Style="{StaticResource MenuButton}"
+                    Height="150"/>
+
+            <!-- Lägg till bok -->
             <Button Grid.Row="1" Grid.Column="0"
-                Content="✏️ Lägg till bok"
-                Margin="10"
-                Command="{Binding ÖppnaRedigeraBokCommand}"
-                FontSize="18" BorderBrush="Black"/>
-            <!-- TODO -->
+                    Content="✏️ Lägg till bok"
+                    Command="{Binding ÖppnaRedigeraBokCommand}"
+                    Style="{StaticResource MenuButton}"
+                    Height="150"/>
+
+            <!-- Logghistorik -->
             <Button Grid.Row="1" Grid.Column="1"
-                Content="📊 Logghistorik"
-                Margin="10"
-                FontSize="18"
-                Command="{Binding ÖppnaLoggHistorikCommand}"
-                BorderBrush="Black"/>
+                    Content="📊 Logghistorik"
+                    Command="{Binding ÖppnaLoggHistorikCommand}"
+                    Style="{StaticResource MenuButton}"
+                    Height="150"/>
         </Grid>
 
+        <!-- Footer med Avsluta-knapp -->
+        <Border VerticalAlignment="Bottom"
+                Background="Transparent"
+                Padding="40,20">
+            <Button Content="✖ Avsluta" 
+                    Command="{Binding AvslutaCommand}"
+                    IsCancel="True"
+                    Width="150" 
+                    Height="45"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource ExitButton}"
+                    Padding="20,10" Margin="0,0,0,25"/>
+        </Border>
+
         <!-- Status bar -->
-        <Border Grid.Row="2" Background="#F5F5F5" BorderBrush="#CCCCCC" BorderThickness="0,1,0,0">
+        <Border VerticalAlignment="Bottom" 
+                Background="#FF2D2D2D" 
+                BorderBrush="Black" 
+                BorderThickness="0,2,0,0"
+                Height="35">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="6" 
+                                ShadowDepth="-2" 
+                                Opacity="0.3"
+                                Direction="90"/>
+            </Border.Effect>
             <TextBlock Text="{Binding AnslutningsStatus, StringFormat='Status: {0}'}" 
-                   FontSize="11" 
-                   VerticalAlignment="Center"
-                   Foreground="{Binding AnslutningsFärg}"
-                   Margin="10,0"/>
+                       FontSize="12" 
+                       VerticalAlignment="Center"
+                       Foreground="{Binding AnslutningsFärg}"
+                       FontWeight="SemiBold"
+                       Margin="20,0"/>
         </Border>
     </Grid>
 </Window>

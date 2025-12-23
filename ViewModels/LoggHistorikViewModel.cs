@@ -1,6 +1,5 @@
 ﻿using Bokhandel_Labb.Commands;
 using Bokhandel_Labb.DTO;
-using Bokhandel_Labb.DTOs;
 using Bokhandel_Labb.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -47,7 +46,8 @@ namespace Bokhandel_Labb.ViewModels
             get => _statusTextFärg;
             set => SetProperty(ref _statusTextFärg, value);
             }
-        
+        public ICommand CancelCommand { get; }
+
         private ObservableCollection<ButikDTO> _tillgängligaButiker1;
         public ObservableCollection<ButikDTO> TillgängligaButiker1
             {
@@ -74,6 +74,8 @@ namespace Bokhandel_Labb.ViewModels
             AllaLoggar = new ObservableCollection<LoggHistorikDTO>();
             TillgängligaButiker1 = new ObservableCollection<ButikDTO>();
             HämtaButiker();
+
+            CancelCommand = new RelayCommand(Avbryt);
             }
 
         private void HämtaButiker()
@@ -93,7 +95,6 @@ namespace Bokhandel_Labb.ViewModels
                 TillgängligaButiker1.Add(butik);
                 }
 
-            // Sätt första butiken som vald automatiskt (valfritt)
             if (TillgängligaButiker1.Count > 0)
                 {
                 ValdButik1 = TillgängligaButiker1[0];
@@ -127,6 +128,12 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 AllaLoggar.Add(logg);
                 }
+            }
+
+        private void Avbryt()
+            {
+            Application.Current.Windows.OfType<Views.LoggHistorikView>().FirstOrDefault()?.Close();
+            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()?.Focus();
             }
         }
     }

@@ -1,74 +1,54 @@
-﻿using Bokhandel_Labb.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Bokhandel_Labb.Models;
-using Bokhandel_Labb.ViewModels;
 
 namespace Bokhandel_Labb.DTO
-{
-    public class OrderHistorikDTO : BaseViewModel
+    {
+    public class OrderHistorikDTO
         {
-        private string _isbn;
-        private string _titel;
-        private string _författareNamn;
-        private string _butiksNamn;
-        private int _antalKöpta;
-        private int _butikId;
-        private int _totalPris;
-
-        public string Isbn
-            {
-            get => _isbn;
-            set => SetProperty(ref _isbn, value);
-            }
-
-        public string Titel
-            {
-            get => _titel;
-            set => SetProperty(ref _titel, value);
-            }
-
-        public string FörfattareNamn
-            {
-            get => _författareNamn;
-            set => SetProperty(ref _författareNamn, value);
-            }
-
-        public int AntalKöpta
-            {
-            get => _antalKöpta;
-            set => SetProperty(ref _antalKöpta, value);
-            }
-
-        public int ButikId
-            {
-            get => _butikId;
-            set => SetProperty(ref _butikId, value);
-            }
+        public int Id { get; set; }
+        public DateTime Orderdatum { get; set; }
+        public decimal TotalBelopp { get; set; }
+        public string Status { get; set; } = null!;
+        public int ButikID { get; set; }
 
         public string ButiksNamn
             {
             get
                 {
-                if (!string.IsNullOrEmpty(_butiksNamn))
-                    return _butiksNamn;
-
-                //Fallback: Hämta butiksnamn från databasen om det inte redan är satt
-                using (var context = new BokhandelContext())
+                return ButikID switch // Hardkodade butiknamn för demoändamål, lazy eftersom detta måste hämtas från databasen
                     {
-                    var butik = context.Butikers.FirstOrDefault(b => b.Id == ButikId);
-                    return butik?.Butiksnamn ?? "Okänd butik";
-                    }
+                        1 => "Bokhandeln Stockholm City",
+                        2 => "Bokhandeln Göteborg",
+                        3 => "Bokhandeln Malmö",
+                        _ => "Okänd"
+                        };
                 }
-            set => SetProperty(ref _butiksNamn, value);
             }
-        public int TotalPris
+        public int KundID { get; set; }
+        public int AntalBöcker { get; set; }
+        public List<OrderRadDTO> OrderRader { get; set; } = new List<OrderRadDTO>();
+        public System.Windows.Media.Brush LeveransFärg
             {
-            get => _totalPris;
-            set => SetProperty(ref _totalPris, value);
+            get
+                {
+                return Status switch
+                    {
+                        "Levererad" => System.Windows.Media.Brushes.Green,
+                        "Skickad" => System.Windows.Media.Brushes.DodgerBlue,
+                        "Pågående" => System.Windows.Media.Brushes.Orange,
+                        _ => System.Windows.Media.Brushes.Gray
+                        };
+                }
             }
         }
-}
+
+
+    public class OrderRadDTO
+        {
+        public string BokTitel { get; set; } = null!;
+        public string Författare { get; set; } = null!;
+        public int Antal { get; set; }
+        public decimal Pris { get; set; }
+        public decimal Totalt { get; set; }
+        }
+    }

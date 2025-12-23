@@ -1,7 +1,7 @@
 ﻿using Bokhandel_Labb.Models;
 using Bokhandel_Labb.ViewModels;
 
-namespace Bokhandel_Labb.DTOs
+namespace Bokhandel_Labb.DTO
     {
     public class LagerSaldoDTO : BaseViewModel
         {

@@ -28,7 +28,6 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _antalText, value))
                     {
-                    // Uppdatera varning när text ändras
                     VisaVarning = value == "0";
                     }
                 }
@@ -50,7 +49,7 @@ namespace Bokhandel_Labb.ViewModels
             {
             BokTitel = bokTitel;
             AntalILager = antalILager;
-            AntalText = antalILager.ToString(); // Visa nuvarande antal
+            AntalText = antalILager.ToString();
             _window = window;
             OKCommand = new RelayCommand(OK);
             CancelCommand = new RelayCommand(Cancel);
@@ -60,9 +59,8 @@ namespace Bokhandel_Labb.ViewModels
             {
             if (int.TryParse(AntalText, out int antal))
                 {
-                if (antal >= 0) // Tillåt 0
+                if (antal >= 0)
                     {
-                    // Visa bekräftelse om användaren sätter till 0
                     if (antal == 0)
                         {
                         var result = MessageBox.Show(
@@ -73,7 +71,7 @@ namespace Bokhandel_Labb.ViewModels
 
                         if (result != MessageBoxResult.Yes)
                             {
-                            return; // Avbryt om användaren inte bekräftar
+                            return;
                             }
                         }
 

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Bokhandel_Labb.Views.HanteraOrderSingelDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:dto="clr-namespace:Bokhandel_Labb.DTOs"
+        xmlns:dto="clr-namespace:Bokhandel_Labb.DTO"
         Title="Order Detaljer" 
         Height="700"
         Width="600"

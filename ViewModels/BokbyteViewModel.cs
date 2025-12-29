@@ -17,12 +17,11 @@ namespace Bokhandel_Labb.ViewModels
         {
         private readonly BokhandelContext _context;
         private bool _isUpdatingButiker = false;
-        
-        // Collections
+
         public ObservableCollection<ButikDTO> AllaButiker { get; set; }
         public ObservableCollection<LagerSaldoDTO> Butik1Böcker { get; set; }
         public ObservableCollection<LagerSaldoDTO> Butik2Böcker { get; set; }
-        
+
 
         private LagerSaldoDTO _valdBok;
         public LagerSaldoDTO ValdBok
@@ -39,8 +38,7 @@ namespace Bokhandel_Labb.ViewModels
                     }
                 }
             }
-        
-        // Butiker
+
         private ObservableCollection<ButikDTO> _tillgängligaButiker1;
         public ObservableCollection<ButikDTO> TillgängligaButiker1
             {
@@ -83,7 +81,6 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        // Statusmeddelande
         private string _statusMeddelande = "Läs hjälpavsnitt(F1) för användning av systemet.";
         public string StatusMeddelande
             {
@@ -98,8 +95,6 @@ namespace Bokhandel_Labb.ViewModels
             set => SetProperty(ref _statusTextFärg, value);
             }
 
-        // Sök
-
         private string _sökText;
         public string SökText
             {
@@ -113,7 +108,7 @@ namespace Bokhandel_Labb.ViewModels
                     }
                 }
             }
-        // Commands
+
         public ICommand SparaÄndringarCommand { get; }
         public ICommand ÅterställCommand { get; }
         public ICommand CancelCommand { get; }
@@ -126,27 +121,24 @@ namespace Bokhandel_Labb.ViewModels
             _context = new BokhandelContext();
             DropHandler = new BokDropHandler(this);
 
-            // Initialisera collections
             AllaButiker = new ObservableCollection<ButikDTO>();
             Butik1Böcker = new ObservableCollection<LagerSaldoDTO>();
             Butik2Böcker = new ObservableCollection<LagerSaldoDTO>();
             TillgängligaButiker1 = new ObservableCollection<ButikDTO>();
             TillgängligaButiker2 = new ObservableCollection<ButikDTO>();
 
-            // Gong dragndrop collection event
             Butik1Böcker.CollectionChanged += (s, e) => OnPropertyChanged(nameof(Butik1Böcker));
             Butik2Böcker.CollectionChanged += (s, e) => OnPropertyChanged(nameof(Butik2Böcker));
 
-            // Initialisera commands
             SparaÄndringarCommand = new RelayCommand(SparaÄndringar);
             ÅterställCommand = new RelayCommand(Återställ);
             CancelCommand = new RelayCommand(Avbryt);
             ÄndraLagersaldoCommand = new RelayCommand(ÄndraLagersaldo);
             HjälpCommand = new RelayCommand(VisaHjälp);
 
-            // Ladda data
             LaddaAllaButiker();
             }
+
         private void ÄndraLagersaldo()
             {
             if (ValdBok == null)
@@ -203,11 +195,12 @@ namespace Bokhandel_Labb.ViewModels
                 MessageBoxImage.Information
                 );
             }
-        private void LaddaAllaButiker()
+
+        private async void LaddaAllaButiker()
             {
             try
                 {
-                var butiker = _context.Butikers.ToList();
+                var butiker = await _context.Butikers.ToListAsync();
 
                 AllaButiker.Clear();
                 foreach (var butik in butiker)
@@ -232,19 +225,22 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        private void LaddaButik1Böcker(string sökText = "")
+        private async void LaddaButik1Böcker(string sökText = "")
             {
             if (ValdButik1 == null)
                 return;
+
+            using var context = new BokhandelContext();
+
             try
                 {
                 if (string.IsNullOrWhiteSpace(sökText))
                     {
-                    var lagerSaldo = _context.LagerSaldos
+                    var lagerSaldo = await context.LagerSaldos
                         .Where(ls => ls.ButikId == ValdButik1.ButikId)
                         .Include(ls => ls.IsbnNavigation)
                             .ThenInclude(b => b.Författares)
-                        .ToList();
+                        .ToListAsync();
 
                     Butik1Böcker.Clear();
                     foreach (var saldo in lagerSaldo)
@@ -264,11 +260,11 @@ namespace Bokhandel_Labb.ViewModels
                     }
                 else
                     {
-                    var lagerSaldo = _context.LagerSaldos
+                    var lagerSaldo = await context.LagerSaldos
                         .Where(ls => ls.ButikId == ValdButik1.ButikId)
                         .Include(ls => ls.IsbnNavigation)
                             .ThenInclude(b => b.Författares)
-                        .ToList();
+                        .ToListAsync();
 
                     Butik1Böcker.Clear();
                     foreach (var saldo in lagerSaldo)
@@ -296,19 +292,22 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        private void LaddaButik2Böcker(string sökText = "")
+        private async void LaddaButik2Böcker(string sökText = "")
             {
             if (ValdButik2 == null)
                 return;
-                try
+
+            using var context = new BokhandelContext();
+
+            try
                 {
                 if (string.IsNullOrWhiteSpace(sökText))
                     {
-                    var lagerSaldo = _context.LagerSaldos
+                    var lagerSaldo = await context.LagerSaldos
                         .Where(ls => ls.ButikId == ValdButik2.ButikId)
                         .Include(ls => ls.IsbnNavigation)
                             .ThenInclude(b => b.Författares)
-                        .ToList();
+                        .ToListAsync();
 
                     Butik2Böcker.Clear();
                     foreach (var saldo in lagerSaldo)
@@ -328,11 +327,11 @@ namespace Bokhandel_Labb.ViewModels
                     }
                 else
                     {
-                    var lagerSaldo = _context.LagerSaldos
+                    var lagerSaldo = await context.LagerSaldos
                         .Where(ls => ls.ButikId == ValdButik2.ButikId)
                         .Include(ls => ls.IsbnNavigation)
                             .ThenInclude(b => b.Författares)
-                        .ToList();
+                        .ToListAsync();
 
                     Butik2Böcker.Clear();
                     foreach (var saldo in lagerSaldo)
@@ -354,31 +353,30 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
                 }
-            catch ( Exception ex)
+            catch (Exception ex)
                 {
                 VisaFel($"Fel vid laddning av böcker från {ValdButik2.ButiksNamn}: {ex.Message}");
                 }
             }
 
-        private void SparaÄndringar()
+        private async void SparaÄndringar()
             {
             try
                 {
-                var allaISBNButik1 = _context.LagerSaldos
+                var allaISBNButik1 = await _context.LagerSaldos
                     .Where(ls => ls.ButikId == ValdButik1.ButikId)
                     .Select(ls => ls.Isbn)
-                    .ToList();
+                    .ToListAsync();
 
-                var allaISBNButik2 = _context.LagerSaldos
+                var allaISBNButik2 = await _context.LagerSaldos
                     .Where(ls => ls.ButikId == ValdButik2.ButikId)
                     .Select(ls => ls.Isbn)
-                    .ToList();
+                    .ToListAsync();
 
-                // Uppdatera LagerSaldo för Butik 1
                 foreach (var bok in Butik1Böcker)
                     {
-                    var saldo = _context.LagerSaldos
-                        .FirstOrDefault(ls => ls.ButikId == ValdButik1.ButikId && ls.Isbn == bok.Isbn);
+                    var saldo = await _context.LagerSaldos
+                        .FirstOrDefaultAsync(ls => ls.ButikId == ValdButik1.ButikId && ls.Isbn == bok.Isbn);
 
                     if (saldo != null)
                         {
@@ -401,8 +399,8 @@ namespace Bokhandel_Labb.ViewModels
                             Antal = bok.AntalILager
                             });
 
-                            LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
-                            $"'{bok.Titel}' tillagd i lagret ({bok.AntalILager} st)", "➕");
+                        LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                        $"'{bok.Titel}' tillagd i lagret ({bok.AntalILager} st)", "➕");
                         }
                     }
 
@@ -412,12 +410,12 @@ namespace Bokhandel_Labb.ViewModels
 
                 foreach (var isbn in borttagnaBöckerButik1)
                     {
-                    var saldo = _context.LagerSaldos
-                        .FirstOrDefault(ls => ls.ButikId == ValdButik1.ButikId && ls.Isbn == isbn);
+                    var saldo = await _context.LagerSaldos
+                        .FirstOrDefaultAsync(ls => ls.ButikId == ValdButik1.ButikId && ls.Isbn == isbn);
                     if (saldo != null)
                         {
-                        // Hämta boktitel för loggning
-                        var bokInfo = _context.Böckers.FirstOrDefault(b => b.Isbn == isbn);
+                        var bokInfo = await _context.Böckers
+                            .FirstOrDefaultAsync(b => b.Isbn == isbn);
                         string bokTitel = bokInfo?.Titel ?? isbn;
 
                         _context.LagerSaldos.Remove(saldo);
@@ -427,11 +425,10 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-                // Uppdatera LagerSaldo för Butik 2
                 foreach (var bok in Butik2Böcker)
                     {
-                    var saldo = _context.LagerSaldos
-                        .FirstOrDefault(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == bok.Isbn);
+                    var saldo = await _context.LagerSaldos
+                        .FirstOrDefaultAsync(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == bok.Isbn);
 
                     if (saldo != null)
                         {
@@ -459,19 +456,18 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-
                 var borttagnaBöckerButik2 = allaISBNButik2
                     .Where(isbn => !Butik2Böcker.Any(b => b.Isbn == isbn))
                     .ToList();
 
                 foreach (var isbn in borttagnaBöckerButik2)
                     {
-                    var saldo = _context.LagerSaldos
-                        .FirstOrDefault(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == isbn);
+                    var saldo = await _context.LagerSaldos
+                        .FirstOrDefaultAsync(ls => ls.ButikId == ValdButik2.ButikId && ls.Isbn == isbn);
                     if (saldo != null)
                         {
-
-                        var bokInfo = _context.Böckers.FirstOrDefault(b => b.Isbn == isbn);
+                        var bokInfo = await _context.Böckers
+                            .FirstOrDefaultAsync(b => b.Isbn == isbn);
                         string bokTitel = bokInfo?.Titel ?? isbn;
 
                         _context.LagerSaldos.Remove(saldo);
@@ -481,7 +477,6 @@ namespace Bokhandel_Labb.ViewModels
                         }
                     }
 
-
                 var tomtLager = _context.LagerSaldos
                     .Where(ls => ls.Antal <= 0 &&
                         ( ls.ButikId == ValdButik1.ButikId || ls.ButikId == ValdButik2.ButikId ))
@@ -489,11 +484,9 @@ namespace Bokhandel_Labb.ViewModels
 
                 _context.LagerSaldos.RemoveRange(tomtLager);
 
-                // Sparar till databas
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 VisaSucces("✓ Ändringar sparade!");
-
 
                 LaddaButik1Böcker();
                 LaddaButik2Böcker();
@@ -520,7 +513,7 @@ namespace Bokhandel_Labb.ViewModels
             _isUpdatingButiker = false;
             }
 
-        private void Återställ()
+        private async void Återställ()
             {
             LaddaButik1Böcker();
             LaddaButik2Böcker();
@@ -533,7 +526,6 @@ namespace Bokhandel_Labb.ViewModels
             Application.Current.Windows.OfType<MainWindow>().FirstOrDefault()?.Focus();
             }
 
-        // Helper metoder för statusmeddelanden
         public void VisaSucces(string meddelande)
             {
             StatusTextFärg = System.Windows.Media.Brushes.Green;

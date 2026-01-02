@@ -258,7 +258,7 @@ namespace Bokhandel_Labb.ViewModels
                             });
                         }
                     }
-                else
+                else //Söktext angiven
                     {
                     var lagerSaldo = await context.LagerSaldos
                         .Where(ls => ls.ButikId == ValdButik1.ButikId)
@@ -325,7 +325,7 @@ namespace Bokhandel_Labb.ViewModels
                             });
                         }
                     }
-                else
+                else //Söktext angiven
                     {
                     var lagerSaldo = await context.LagerSaldos
                         .Where(ls => ls.ButikId == ValdButik2.ButikId)

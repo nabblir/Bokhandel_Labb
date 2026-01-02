@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,7 @@ namespace Bokhandel_Labb.Commands
             _context = context;
             }
 
-        public static bool LoggaHändelse(BokhandelContext context, string user, string butiksnamn, int butikId, string händelse, string logTyp)
+        public async static Task<bool> LoggaHändelse(BokhandelContext context, string user, string butiksnamn, int butikId, string händelse, string logTyp)
             {
             try
                 {
@@ -33,11 +34,12 @@ namespace Bokhandel_Labb.Commands
                     LogTyp = logTyp
                     };
                 context.LoggHistorik.Add(logg);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 return true;
                 }
-            catch
+            catch (Exception ex) 
                 {
+                Debug.WriteLine($"Loggning misslyckades: {ex.Message}");
                 return false;
                 }
             }

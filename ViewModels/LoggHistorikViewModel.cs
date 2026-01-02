@@ -78,9 +78,9 @@ namespace Bokhandel_Labb.ViewModels
             CancelCommand = new RelayCommand(Avbryt);
             }
 
-        private void HämtaButiker()
+        private async void HämtaButiker()
             {
-            var butiker = _context.Butikers
+            var butiker = await _context.Butikers
                 .Select(b => new ButikDTO
                     {
                     ButikId = b.Id,
@@ -88,7 +88,7 @@ namespace Bokhandel_Labb.ViewModels
                     Adress = b.Adress,
                     Stad = b.Stad
                     })
-                .ToList();
+                .ToListAsync();
 
             foreach (var butik in butiker)
                 {
@@ -107,10 +107,10 @@ namespace Bokhandel_Labb.ViewModels
             StatusMeddelande = meddelande;
             }
 
-        private void HämtaLoggar(int butikID)
+        private async void HämtaLoggar(int butikID)
             {
             AllaLoggar.Clear();
-            var loggar = _context.LoggHistorik
+            var loggar = await _context.LoggHistorik
                 .Select(logg => new LoggHistorikDTO
                     {
                     User = logg.User,
@@ -122,7 +122,7 @@ namespace Bokhandel_Labb.ViewModels
                     LogTyp = logg.LogTyp
                     })
                 .Where(l => l.ButikId == butikID)
-                .ToList();
+                .ToListAsync();
 
             foreach (var logg in loggar)
                 {

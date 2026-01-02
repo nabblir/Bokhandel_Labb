@@ -132,10 +132,15 @@ namespace Bokhandel_Labb.ViewModels
                 {
                 if (SetProperty(ref _valdButik, value))
                     {
-                    _listISBN = LaddaISBNFrånButik(value);
-                    AsyncValidation();
+                    _ = LaddaISBNOchValideraAsync();
                     }
                 }
+            }
+
+        private async Task LaddaISBNOchValideraAsync()
+            {
+            _listISBN = await LaddaISBNFrånButik(ValdButik);
+            AsyncValidation();
             }
 
         public ObservableCollection<FörfattareDTO> FörfattareLista { get; set; }
@@ -233,7 +238,8 @@ namespace Bokhandel_Labb.ViewModels
             {
             try
                 {
-                var författare = _context.Författares.ToList();
+                using var context = new BokhandelContext(); //Används för att inte överbelasta _context instansen
+                var författare = context.Författares.ToList();
                 FörfattareLista.Clear();
 
                 FörfattareLista.Add(new FörfattareDTO
@@ -262,11 +268,12 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        private void LaddaFörlag()
+        private async void LaddaFörlag()
             {
             try
                 {
-                var förlag = _context.Förlags.ToList();
+                using var context = new BokhandelContext(); //Används för att inte överbelasta _context instansen
+                var förlag = await context.Förlags.ToListAsync();
                 FörlagLista.Clear();
 
                 FörlagLista.Add(new FörlagDTO
@@ -301,11 +308,11 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        private void LaddaButiker()
+        private async void LaddaButiker()
             {
             try
                 {
-                var butiker = _context.Butikers.ToList();
+                var butiker = await _context.Butikers.ToListAsync();
                 Butik.Clear();
                 foreach (var butik in butiker)
                     {
@@ -326,17 +333,17 @@ namespace Bokhandel_Labb.ViewModels
                 }
             }
 
-        private List<string> LaddaISBNFrånButik(ButikDTO butik)
+        private async Task<List<string>> LaddaISBNFrånButik(ButikDTO butik)
             {
             if (butik == null)
                 return new List<string>();
 
             try
                 {
-                return _context.LagerSaldos
+                return await _context.LagerSaldos
                     .Where(l => l.ButikId == butik.ButikId)
                     .Select(l => l.Isbn)
-                    .ToList();
+                    .ToListAsync();
                 }
             catch (Exception ex)
                 {
@@ -359,6 +366,7 @@ namespace Bokhandel_Labb.ViewModels
                 }
             catch (TaskCanceledException)
                 {
+
                 }
             }
 
@@ -570,7 +578,7 @@ namespace Bokhandel_Labb.ViewModels
             }
         #endregion
 
-        private void LäggTillBok()
+        private async void LäggTillBok()
             {
             try
                 {
@@ -591,7 +599,7 @@ namespace Bokhandel_Labb.ViewModels
                         Efternamn = efterNamn
                         };
                     _context.Författares.Add(nyFörfattare);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     författareId = nyFörfattare.Id;
                     }
                 else
@@ -611,7 +619,7 @@ namespace Bokhandel_Labb.ViewModels
                             Namn = NyttFörlagNamn.Trim()
                             };
                         _context.Förlags.Add(nyttFörlag);
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                         förlagId = nyttFörlag.Id;
                         }
                     else if (ValtFörlag.FörlagId > 0)
@@ -642,10 +650,10 @@ namespace Bokhandel_Labb.ViewModels
                     }
 
                 _context.Böckers.Add(nyBok);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 // Rawdog SQL för att lägga till i BokFörfattare (måste göras separat pga många-till-många relation)
-                _context.Database.ExecuteSqlRaw(
+                await _context.Database.ExecuteSqlRawAsync(
                     "INSERT INTO BokFörfattare (ISBN, FörfattareID) VALUES ({0}, {1})",
                     formateratISBN, författareId);
 
@@ -656,10 +664,10 @@ namespace Bokhandel_Labb.ViewModels
                     Antal = int.Parse(BokAntal)
                     };
                 _context.LagerSaldos.Add(lagerSaldo);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 _listISBN.Add(formateratISBN);
-                LoggaHändelse(_context, "Admin", 
+                await LoggaHändelse(_context, "Admin",
                     _valdButik.ButiksNamn,
                     _valdButik.ButikId,
                     $"{BokAntal} st av {BokTitel} tillagd(a) i lagret",

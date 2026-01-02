@@ -86,7 +86,7 @@ namespace Bokhandel_Labb.ViewModels
             CancelCommand = new RelayCommand(Avbryt);
             }
 
-        private void HämtaButiker()
+        private async void HämtaButiker()
             {
             TillgängligaButiker1.Clear();
             TillgängligaButiker1.Add(new ButikDTO
@@ -95,7 +95,7 @@ namespace Bokhandel_Labb.ViewModels
                 ButiksNamn = "Alla butiker"
                 });
 
-            var butiker = _context.Butikers
+            var butiker = await _context.Butikers
                 .Select(b => new ButikDTO
                     {
                     ButikId = b.Id,
@@ -103,7 +103,7 @@ namespace Bokhandel_Labb.ViewModels
                     Adress = b.Adress,
                     Stad = b.Stad
                     })
-                .ToList();
+                .ToListAsync();
 
             foreach (var butik in butiker)
                 {
@@ -120,12 +120,12 @@ namespace Bokhandel_Labb.ViewModels
             {
             StatusTextFärg = System.Windows.Media.Brushes.DarkBlue;
 
-            var detaljer = $"📋 Order #{order.Id}\n" +
-                          $"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-                          $"🏪 Butik: {order.ButiksNamn}\n" +
-                          $"📦 Status: {order.Status}\n" +
+            var detaljer = $"Order #{order.Id}\n" +
+                          $"--------------------------------\n" +
+                          $"Butik: {order.ButiksNamn}\n" +
+                          $"Status: {order.Status}\n" +
                           $"Dubbelklicka för mer information\n" +
-                          $"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+                          $"--------------------------------\n";
 
             StatusMeddelande = detaljer;
             }
@@ -136,7 +136,7 @@ namespace Bokhandel_Labb.ViewModels
             StatusMeddelande = meddelande;
             }
 
-        private void HämtaOrder(int butikID)
+        private async void HämtaOrder(int butikID)
             {
             AllaOrdrar.Clear();
             if (butikID == -1)
@@ -145,7 +145,7 @@ namespace Bokhandel_Labb.ViewModels
                 return;
                 }
 
-            var ordrar = _context.Ordrars
+            var ordrar = await _context.Ordrars
                 .Include(o => o.OrderRaders)
                     .ThenInclude(or => or.IsbnNavigation)
                 .Include(o => o.Kund)
@@ -167,7 +167,7 @@ namespace Bokhandel_Labb.ViewModels
                         Totalt = r.Antal * r.Pris
                         }).ToList()
                     })
-                .ToList();
+                .ToListAsync();
 
             foreach (var order in ordrar)
                 {
@@ -176,10 +176,10 @@ namespace Bokhandel_Labb.ViewModels
 
             }
 
-        private void HämtaAllaOrdrar()
+        private async void HämtaAllaOrdrar()
             {
             AllaOrdrar.Clear();
-            var ordrar = _context.Ordrars
+            var ordrar = await _context.Ordrars
                 .Include(o => o.OrderRaders)
                     .ThenInclude(or => or.IsbnNavigation)
                 .Include(o => o.Kund)
@@ -200,7 +200,7 @@ namespace Bokhandel_Labb.ViewModels
                         Totalt = r.Antal * r.Pris
                         }).ToList()
                     })
-                .ToList();
+                .ToListAsync();
 
             foreach (var order in ordrar)
                 {

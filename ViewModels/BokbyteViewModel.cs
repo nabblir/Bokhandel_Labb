@@ -386,7 +386,7 @@ namespace Bokhandel_Labb.ViewModels
                             int skillnad = bok.AntalILager - saldo.Antal;
                             saldo.Antal = bok.AntalILager;
 
-                            LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                            await LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
                                 $"'{bok.Titel}' lagersaldo ändrat: {gammaltAntal} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
                             }
                         }
@@ -399,7 +399,7 @@ namespace Bokhandel_Labb.ViewModels
                             Antal = bok.AntalILager
                             });
 
-                        LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                        await LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
                         $"'{bok.Titel}' tillagd i lagret ({bok.AntalILager} st)", "➕");
                         }
                     }
@@ -420,7 +420,7 @@ namespace Bokhandel_Labb.ViewModels
 
                         _context.LagerSaldos.Remove(saldo);
 
-                        LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
+                        await LoggaHändelse(_context, "Admin", ValdButik1.ButiksNamn, ValdButik1.ButikId,
                             $"'{bokTitel}' borttagen från lagret", "🗑️");
                         }
                     }
@@ -438,7 +438,7 @@ namespace Bokhandel_Labb.ViewModels
                             int skillnad = bok.AntalILager - saldo.Antal;
                             saldo.Antal = bok.AntalILager;
 
-                            LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
+                            await LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
                                 $"'{bok.Titel}' lagersaldo ändrat: {gammaltAntal} > {bok.AntalILager} ({skillnad:+0;-#})", "✏️");
                             }
                         }
@@ -451,7 +451,7 @@ namespace Bokhandel_Labb.ViewModels
                             Antal = bok.AntalILager
                             });
 
-                        LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
+                        await LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
                             $"'{bok.Titel}' tillagd i lagret ({bok.AntalILager} st)", "➕");
                         }
                     }
@@ -472,7 +472,7 @@ namespace Bokhandel_Labb.ViewModels
 
                         _context.LagerSaldos.Remove(saldo);
 
-                        LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
+                        await LoggaHändelse(_context, "Admin", ValdButik2.ButiksNamn, ValdButik2.ButikId,
                             $"'{bokTitel}' borttagen från lagret", "🗑️");
                         }
                     }
@@ -494,6 +494,7 @@ namespace Bokhandel_Labb.ViewModels
             catch (Exception ex)
                 {
                 VisaFel($"✘ Fel vid sparande: {ex.InnerException?.Message}");
+                MessageBox.Show($"Fel vid sparande av ändringar: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
 
